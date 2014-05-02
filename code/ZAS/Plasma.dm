@@ -24,7 +24,15 @@ var/image/contamination_overlay = image('icons/effects/contamination.dmi')
 	var/EYE_BURNS = 1
 	var/EYE_BURNS_NAME = "Eye Burns"
 	var/EYE_BURNS_DESC = "Plasma burns the eyes of anyone not wearing eye protection."
+	
+	var/MINOR_EXPOSURE_CHANCE = 1
+	var/MINOR_EXPOSURE_CHANCE_NAME = "Minor Exposure Burn Rate"
+	var/MINOR_EXPOSURE_CHANCE_DESC = "Affects how badly a someone will be burned with just minor exposure (hands, feet). 100 means they will get the same burns as major exposure (head, body)."
 
+	var/MINOR_CONTAMINATION_CHANCE = 1
+	var/MINOR_CONTAMINATION_CHANCE_NAME = "Minor Exposure Contamination Chance"
+	var/MINOR_CONTAMINATION_CHANCE_DESC = "The chance that plasma will get in through openings in a not adequately sealed suit (hands, head, feet) and contaminate everything inside."
+	
 	var/CONTAMINATION_LOSS = 0.02
 	var/CONTAMINATION_LOSS_NAME = "Contamination Loss"
 	var/CONTAMINATION_LOSS_DESC = "How much toxin damage is dealt from contaminated clothing" //Per tick?  ASK ARYN
@@ -66,7 +74,7 @@ obj/var/contaminated = 0
 		suit_contamination()
 
 	if(!pl_head_protected() || !pl_hands_protected() || !pl_feet_protected() || !pl_tail_protected())
-		if(prob(1)) suit_contamination() //Plasma can sometimes get through such an open suit.
+		if(prob(vsc.plc.MINOR_CONTAMINATION_CHANCE)) suit_contamination() //Plasma can sometimes get through such an open suit.
 
 //Cannot wash backpacks currently.
 //	if(istype(back,/obj/item/weapon/storage/backpack))
@@ -91,7 +99,7 @@ obj/var/contaminated = 0
 			if(prob(20)) src << "\red Your skin burns!"
 			updatehealth()
 		else if(!pl_hands_protected() || !pl_feet_protected() || !pl_tail_protected())	//minor areas
-			if(prob(1))		//Plasma can sometimes get through such an open suit.
+			if(prob(vsc.plc.MINOR_EXPOSURE_CHANCE))		//Plasma can sometimes get through such an open suit.
 				burn_skin(0.75)		//Apply burn to whole body as plasma spreads inside the suit.
 				if(prob(20)) src << "\red Your skin burns!"
 				updatehealth()

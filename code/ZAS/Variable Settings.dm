@@ -205,6 +205,8 @@ var/global/vs_control/vsc = new
 			plc.EYE_BURNS = 1 //Plasma burns the eyes of anyone not wearing eye protection.
 			plc.PLASMA_HALLUCINATION = 0
 			plc.CONTAMINATION_LOSS = 0.02
+			plc.MINOR_EXPOSURE_CHANCE = 2
+			plc.MINOR_CONTAMINATION_CHANCE = 2
 
 		if("Plasma - Low Hazard")
 			plc.CLOTH_CONTAMINATION = 0 //If this is on, plasma does damage by getting into cloth.
@@ -223,6 +225,8 @@ var/global/vs_control/vsc = new
 			plc.EYE_BURNS = 1 //Plasma burns the eyes of anyone not wearing eye protection.
 			plc.PLASMA_HALLUCINATION = 1
 			plc.CONTAMINATION_LOSS = 0.05
+			plc.MINOR_EXPOSURE_CHANCE = 5
+			plc.MINOR_CONTAMINATION_CHANCE = 5
 
 		if("Plasma - Oh Shit!")
 			plc.CLOTH_CONTAMINATION = 1 //If this is on, plasma does damage by getting into cloth.
@@ -232,6 +236,8 @@ var/global/vs_control/vsc = new
 			plc.EYE_BURNS = 1 //Plasma burns the eyes of anyone not wearing eye protection.
 			plc.PLASMA_HALLUCINATION = 1
 			plc.CONTAMINATION_LOSS = 0.075
+			plc.MINOR_EXPOSURE_CHANCE = 10
+			plc.MINOR_CONTAMINATION_CHANCE = 10
 
 		if("ZAS - Normal")
 			airflow_lightest_pressure = 20
