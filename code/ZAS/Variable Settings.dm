@@ -206,7 +206,7 @@ var/global/vs_control/vsc = new
 			plc.PHORON_HALLUCINATION = 0
 			plc.CONTAMINATION_LOSS = 0.02
 			plc.MINOR_EXPOSURE_CHANCE = 2
-			plc.MINOR_CONTAMINATION_CHANCE = 2
+			plc.MINOR_CONTAMINATION_CHANCE = 1
 
 		if("Phoron - Low Hazard")
 			plc.CLOTH_CONTAMINATION = 0 //If this is on, phoron does damage by getting into cloth.
@@ -216,6 +216,8 @@ var/global/vs_control/vsc = new
 			plc.EYE_BURNS = 1 //Phoron burns the eyes of anyone not wearing eye protection.
 			plc.PHORON_HALLUCINATION = 0
 			plc.CONTAMINATION_LOSS = 0.01
+			plc.MINOR_EXPOSURE_CHANCE = 0
+			plc.MINOR_CONTAMINATION_CHANCE = 0
 
 		if("Phoron - High Hazard")
 			plc.CLOTH_CONTAMINATION = 1 //If this is on, phoron does damage by getting into cloth.
@@ -226,7 +228,7 @@ var/global/vs_control/vsc = new
 			plc.PHORON_HALLUCINATION = 1
 			plc.CONTAMINATION_LOSS = 0.05
 			plc.MINOR_EXPOSURE_CHANCE = 5
-			plc.MINOR_CONTAMINATION_CHANCE = 5
+			plc.MINOR_CONTAMINATION_CHANCE = 2
 
 		if("Phoron - Oh Shit!")
 			plc.CLOTH_CONTAMINATION = 1 //If this is on, phoron does damage by getting into cloth.
@@ -237,7 +239,7 @@ var/global/vs_control/vsc = new
 			plc.PHORON_HALLUCINATION = 1
 			plc.CONTAMINATION_LOSS = 0.075
 			plc.MINOR_EXPOSURE_CHANCE = 10
-			plc.MINOR_CONTAMINATION_CHANCE = 10
+			plc.MINOR_CONTAMINATION_CHANCE = 5
 
 		if("ZAS - Normal")
 			airflow_lightest_pressure = 20

@@ -25,7 +25,7 @@ var/image/contamination_overlay = image('icons/effects/contamination.dmi')
 	var/EYE_BURNS_NAME = "Eye Burns"
 	var/EYE_BURNS_DESC = "Phoron burns the eyes of anyone not wearing eye protection."
 	
-	var/MINOR_EXPOSURE_CHANCE = 1
+	var/MINOR_EXPOSURE_CHANCE = 2
 	var/MINOR_EXPOSURE_CHANCE_NAME = "Minor Exposure Burn Rate"
 	var/MINOR_EXPOSURE_CHANCE_DESC = "Affects how badly a someone will be burned with just minor exposure (hands, feet). 100 means they will get the same burns as major exposure (head, body)."
 
@@ -69,12 +69,19 @@ obj/var/contaminated = 0
 
 /mob/living/carbon/human/contaminate()
 	//See if anything can be contaminated.
-
+	var/will_contaminate = 0
 	if(!pl_suit_protected())
+		will_contaminate = 1
+	else
+		//Phoron can sometimes get through such an open suit.
+		//more points of exposure means more chance of exposure
+		if(!pl_head_protected() && prob(vsc.plc.MINOR_CONTAMINATION_CHANCE)) will_contaminate = 1
+		if(!pl_hands_protected() && prob(vsc.plc.MINOR_CONTAMINATION_CHANCE)) will_contaminate = 1
+		if(!pl_feet_protected() && prob(vsc.plc.MINOR_CONTAMINATION_CHANCE)) will_contaminate = 1
+		if(!pl_tail_protected() && prob(vsc.plc.MINOR_CONTAMINATION_CHANCE)) will_contaminate = 1
+	
+	if (will_contaminate)
 		suit_contamination()
-
-	if(!pl_head_protected() || !pl_hands_protected() || !pl_feet_protected() || !pl_tail_protected())
-		if(prob(vsc.plc.MINOR_CONTAMINATION_CHANCE)) suit_contamination() //Phoron can sometimes get through such an open suit.
 
 //Cannot wash backpacks currently.
 //	if(istype(back,/obj/item/weapon/storage/backpack))
@@ -94,16 +101,21 @@ obj/var/contaminated = 0
 
 	//Burn skin if exposed.
 	if(vsc.plc.SKIN_BURNS)
+		var/will_burn = 0
 		if(!pl_head_protected() || !pl_suit_protected())	//major areas
+			will_burn = 1
+		else
+			//minor areas
+			//more points of exposure means more chance of exposure
+			if(!pl_hands_protected() && prob(vsc.plc.MINOR_EXPOSURE_CHANCE)) will_burn = 1
+			if(!pl_feet_protected() && prob(vsc.plc.MINOR_EXPOSURE_CHANCE)) will_burn = 1
+			if(!pl_tail_protected() && prob(vsc.plc.MINOR_EXPOSURE_CHANCE)) will_burn = 1
+
+		if(will_burn)
 			burn_skin(0.75)
 			if(prob(20)) src << "\red Your skin burns!"
 			updatehealth()
-		else if(!pl_hands_protected() || !pl_feet_protected() || !pl_tail_protected())	//minor areas
-			if(prob(vsc.plc.MINOR_EXPOSURE_CHANCE))		//Plasma can sometimes get through such an open suit.
-				burn_skin(0.75)		//Apply burn to whole body as plasma spreads inside the suit.
-				if(prob(20)) src << "\red Your skin burns!"
-				updatehealth()
-
+				
 	//Burn eyes if exposed.
 	if(vsc.plc.EYE_BURNS)
 		if(!head)
@@ -149,7 +161,7 @@ obj/var/contaminated = 0
 		var/ears_protected = 0
 		
 		if (wear_mask) 
-			//if (wear_mask.flags_inv & HIDEFACE) face_protected = 1	//not so sure about this one, uncommenting this will mean a gasmask alone will protect your head.
+			if (wear_mask.flags_inv & HIDEFACE) face_protected = 1	//this makes gasmasks able to serve as adequate protection - real ones come with a protective hood anyways.
 			if (wear_mask.flags_inv & HIDEEYES) eyes_protected = 1
 			if (wear_mask.flags_inv & HIDEEARS) ears_protected = 1
 		
@@ -175,7 +187,7 @@ obj/var/contaminated = 0
 		if(shoes && (shoes.flags & PHORONGUARD)) return 1
 		if(wear_suit && ((wear_suit.flags_inv & HIDESHOES) && (wear_suit.flags & PHORONGUARD))) return 1
 	else
-		if(shoes) return 1
+		if(shoes) return 1	//need to do more here. currently this makes sandals and slippers count as adequate foot protection.
 		if(wear_suit && (wear_suit.flags_inv & HIDESHOES)) return 1
 	return 0
 
