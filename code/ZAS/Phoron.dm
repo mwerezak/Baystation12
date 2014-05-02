@@ -132,27 +132,40 @@ obj/var/contaminated = 0
 
 /mob/living/carbon/human/proc/pl_head_protected()
 	//Checks if the head is adequately sealed.
-	if(head)
-		if(vsc.plc.PHORONGUARD_ONLY)
-			if(head.flags & PHORONGUARD)
-				return 1
-		else if ((head.flags & HIDEMASK) && (head.flags & HIDEEARS) && (head.flags & HIDEEYES))	//dont use HIDEFACE here. That only indicates whether the face is obscured, not protected - things like biosuit hoods don't obscure the face.
+	if(vsc.plc.PHORONGUARD_ONLY)
+		if(head && (head.flags & PHORONGUARD))
 			return 1
+	else
+		var/face_protected = 0
+		var/eyes_protected = 0
+		var/ears_protected = 0
+		
+		if (wear_mask) 
+			//if (wear_mask.flags_inv & HIDEFACE) face_protected = 1	//not so sure about this one, uncommenting this will mean a gasmask alone will protect your head.
+			if (wear_mask.flags_inv & HIDEEYES) eyes_protected = 1
+			if (wear_mask.flags_inv & HIDEEARS) ears_protected = 1
+		
+		if (head)
+			if (head.flags_inv & HIDEMASK) face_protected = 1
+			if (head.flags_inv & HIDEEYES) eyes_protected = 1
+			if (head.flags_inv & HIDEEARS) ears_protected = 1
+		
+		return face_protected && eyes_protected && ears_protected
 	return 0
 
 /mob/living/carbon/human/proc/pl_hands_protected()
-	if(vsc.plc.PLASMAGUARD_ONLY)
-		if(gloves && (gloves.flags & PLASMAGUARD)) return 1
-		if(wear_suit && ((wear_suit.flags_inv & HIDEGLOVES) && (wear_suit.flags & PLASMAGUARD))) return 1
+	if(vsc.plc.PHORONGUARD_ONLY)
+		if(gloves && (gloves.flags & PHORONGUARD)) return 1
+		if(wear_suit && ((wear_suit.flags_inv & HIDEGLOVES) && (wear_suit.flags & PHORONGUARD))) return 1
 	else
 		if(gloves) return 1
 		if(wear_suit && (wear_suit.flags_inv & HIDEGLOVES)) return 1
 	return 0
 
 /mob/living/carbon/human/proc/pl_feet_protected()
-	if(vsc.plc.PLASMAGUARD_ONLY)
-		if(shoes && (shoes.flags & PLASMAGUARD)) return 1
-		if(wear_suit && ((wear_suit.flags_inv & HIDESHOES) && (wear_suit.flags & PLASMAGUARD))) return 1
+	if(vsc.plc.PHORONGUARD_ONLY)
+		if(shoes && (shoes.flags & PHORONGUARD)) return 1
+		if(wear_suit && ((wear_suit.flags_inv & HIDESHOES) && (wear_suit.flags & PHORONGUARD))) return 1
 	else
 		if(shoes) return 1
 		if(wear_suit && (wear_suit.flags_inv & HIDESHOES)) return 1
@@ -162,8 +175,8 @@ obj/var/contaminated = 0
 	if(!(species.flags & HAS_TAIL))
 		return 1
 	if(wear_suit && (wear_suit.flags_inv & HIDETAIL))
-		if(vsc.plc.PLASMAGUARD_ONLY)
-			if(wear_suit.flags & PLASMAGUARD) return 1
+		if(vsc.plc.PHORONGUARD_ONLY)
+			if(wear_suit.flags & PHORONGUARD) return 1
 		else
 			return 1
 	return 0
