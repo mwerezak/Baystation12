@@ -89,8 +89,9 @@ var/global/list/autolathe_recipes_hidden = list( \
 	var/disable_wire
 	var/shock_wire
 	use_power = 1
-	idle_power_usage = 10
-	active_power_usage = 100
+	idle_power_usage = 30		//based these on 3D printer power consumption
+	active_power_usage = 200
+	var/max_load_power_usage = 2000	//how much material can be loaded at once = (this * 115) g
 	var/busy = 0
 
 	proc
@@ -222,30 +223,48 @@ var/global/list/autolathe_recipes_hidden = list( \
 		var/obj/item/stack/stack
 		var/m_amt = O.m_amt
 		var/g_amt = O.g_amt
+		
+		//see if it can be loaded. 
+		//Calculate the amount of power needed to load one of the objects:
+		//Based this on the datasheet for a random 55 Nm actuator. (should be able to lift a 3.75 kg metal sheet, right?)
+		//current draw: 0.9 A @ 24VAC w/ 75% duty cycle so power is 16.2W per sheet. Or 0.00432 per m/g_amt (g).
+		//With two actuators for feeding that would result in:
+		var/used_power_one = (m_amt+g_amt)/115
+		if (used_power_one > max_load_power_usage)
+			user << "\red This object is too big to be loaded into the autolathe."
+			return 1
+		
+		var/amount_loaded = round(max_load_power_usage / used_power_one)
+		
 		if (istype(O, /obj/item/stack))
 			stack = O
 			amount = stack.amount
 			if (m_amt)
-				amount = min(amount, round((max_m_amount-src.m_amount)/m_amt))
+				amount = min(amount, round((max_m_amount-src.m_amount)/m_amt))	//figures out how many sheets will actually fit.
 				flick("autolathe_o",src)//plays metal insertion animation
 			if (g_amt)
 				amount = min(amount, round((max_g_amount-src.g_amount)/g_amt))
 				flick("autolathe_r",src)//plays glass insertion animation
-			stack.use(amount)
+			amount_loaded = min(amount_loaded, amount)
+			stack.use(amount_loaded)
 		else
 			usr.before_take_item(O)
 			O.loc = src
 		icon_state = "autolathe"
 		busy = 1
-		use_power(max(1000, (m_amt+g_amt)*amount/10))
-		src.m_amount += m_amt * amount
-		src.g_amount += g_amt * amount
-		user << "You insert [amount] sheet[amount>1 ? "s" : ""] to the autolathe."
+		
+		use_power(used_power_one * amount_loaded)
+		src.m_amount += m_amt * amount_loaded
+		src.g_amount += g_amt * amount_loaded
+		user << "You insert [amount_loaded] [O][amount_loaded>1 ? "s" : ""] into the autolathe."
 		if (O && O.loc == src)
 			del(O)
 		busy = 0
 		src.updateUsrDialog()
 
+	proc/get_load_power_usage(var/mat_amt)
+		return mat_amt/115
+	
 	attack_paw(mob/user as mob)
 		return src.attack_hand(user)
 
@@ -297,17 +316,25 @@ var/global/list/autolathe_recipes_hidden = list( \
 					message_admins("[key_name_admin(usr)] tried to exploit an autolathe with multiplier set to <u>[multiplier]</u> on <u>[template]</u>  ! ([LOC ? "<a href='?_src_=holder;adminplayerobservecoodjump=1;X=[LOC.x];Y=[LOC.y];Z=[LOC.z]'>JMP</a>" : "null"])" , 0)
 					log_admin("EXPLOIT : [key_name(usr)] tried to exploit an autolathe with multiplier set to [multiplier] on [template]  !")
 					return
-
-				var/power = max(2000, (template.m_amt+template.g_amt)*multiplier/5)
+				
+				var/power_used = 0
+				
+				//if we are just ejecting sheets use regular actuator power
+				if (istype(template, /obj/item/stack/sheet/metal) || istype(template, /obj/item/stack/sheet/glass()))
+					power_used = (template.m_amt+template.g_amt)*multiplier/115
+				else
+					//based this on 100W per tick to print a wrench.
+					power_used = (template.m_amt+template.g_amt)*multiplier/1.5 
+				
 				if(src.m_amount >= template.m_amt*multiplier && src.g_amount >= template.g_amt*multiplier)
 					busy = 1
-					use_power(power)
+					use_power(power_used)
 					icon_state = "autolathe"
 					flick("autolathe_n",src)
 					spawn(16)
-						use_power(power)
+						use_power(power_used)
 						spawn(16)
-							use_power(power)
+							use_power(power_used)
 							spawn(16)
 								src.m_amount -= template.m_amt*multiplier
 								src.g_amount -= template.g_amt*multiplier
