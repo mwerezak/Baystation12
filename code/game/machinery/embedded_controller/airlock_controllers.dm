@@ -1,7 +1,6 @@
 //base type for controllers of two-door systems
 /obj/machinery/embedded_controller/radio/airlock
 	// Setup parameters only
-	var/id_tag
 	var/tag_exterior_door
 	var/tag_interior_door
 	var/tag_airpump
