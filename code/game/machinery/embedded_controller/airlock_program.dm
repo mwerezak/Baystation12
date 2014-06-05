@@ -176,8 +176,11 @@
 			//make sure to return to a sane idle state
 			if(memory["pump_status"] != "off")	//send a signal to stop pumping
 				signalPump(tag_airpump, 0)
-
-
+	
+	//the airlock will not allow itself to continue to cycle when any of the doors are forced open.
+	if (state && !check_doors_closed())
+		stop_cycling()
+	
 	switch(state)
 		if(STATE_PRESSURIZE)
 			if(memory["chamber_sensor_pressure"] >= memory["target_pressure"] * 0.95)
@@ -235,6 +238,8 @@
 	else
 		del(signal)
 
+/datum/computer/file/embedded_program/proc/check_doors_closed()
+	return (memory["interior_status"]["state"] == "closed" && memory["exterior_status"["state"] == "closed")
 
 /datum/computer/file/embedded_program/proc/signalDoor(var/tag, var/command)
 	var/datum/signal/signal = new
