@@ -50,7 +50,7 @@
 				finish_docking()	//server done docking!
 				confirm_sent = 0
 			else
-				send_docking_command(tag_target, "abort_docking")	//not expecting confirmation for anything - tell the other guy.
+				send_docking_command(tag_target, "abort_dock")	//not expecting confirmation for anything - tell the other guy.
 		
 		if ("request_dock")
 			if (control_mode == MODE_NONE && dock_state == STATE_UNDOCKED)
@@ -60,7 +60,7 @@
 				prepare_for_docking()
 		
 		if ("confirm_undock")
-			if (control_mode == MODE_CLIENT && dock_state == STATE_UNDOCKING && receive_tag = tag_target)
+			if (control_mode == MODE_CLIENT && dock_state == STATE_UNDOCKING && receive_tag == tag_target)
 				send_docking_command(tag_target, "confirm_undock")
 				reset()		//client is done undocking!
 		
@@ -69,14 +69,18 @@
 				dock_state = STATE_UNDOCKING
 				prepare_for_undocking()
 	
-		if ("abort_docking")
-			if (dock_state == STATE_DOCKING && receive_tag = tag_target)
+		if ("abort_dock")
+			if (dock_state == STATE_DOCKING && receive_tag == tag_target)
 				reset()
 		
-		if ("abort_undocking")
-			if (dock_state == STATE_UNDOCKING && receive_tag = tag_target)
+		if ("abort_undock")
+			if (dock_state == STATE_UNDOCKING && receive_tag == tag_target)
 				dock_state = STATE_DOCKING	//redock
 				prepare_for_docking()
+		
+		if ("dock_error")
+			if (receive_tag == tag_target)
+				reset()		//something really bad happened
 
 /datum/computer/file/embedded_program/docking_controller/process()
 	switch(dock_state)
@@ -104,10 +108,10 @@
 		confirm_sent = 0
 	
 	//handle invalid states
-	//write this after
-	if (tag_target && (dock_state == STATE_UNDOCKED || control_mode == MODE_NONE)
-		send_docking_command(tag_target, "docking_error")
-		tag_target = null
+	if (control_mode == MODE_NONE && dock_state != STATE_UNDOCKED)
+		if (tag_target)
+			send_docking_command(tag_target, "dock_error")
+		reset()
 	if (control_mode == MODE_SERVER && dock_state == STATE_UNDOCKED)
 		control_mode = MODE_NONE
 
@@ -158,10 +162,10 @@
 /datum/computer/file/embedded_program/docking_controller/proc/initiate_abort()
 	switch(dock_state)
 		if (STATE_DOCKING)
-			send_docking_command(tag_target, "abort_docking")
+			send_docking_command(tag_target, "abort_dock")
 			reset()
 		if (STATE_UNDOCKING)
-			send_docking_command(tag_target, "abort_undocking")
+			send_docking_command(tag_target, "abort_undock")
 			dock_state = STATE_DOCKING	//redock
 			prepare_for_docking()
 
@@ -170,7 +174,9 @@
 	control_mode = MODE_NONE
 	tag_target = null
 	confirm_sent = 0
-	
+
+
+
 /*
 /datum/computer/file/embedded_program/airlock/docking
 	var/tag_target				//the tag of the docking controller that we are trying to dock with
