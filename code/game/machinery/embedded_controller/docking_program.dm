@@ -30,7 +30,7 @@
 	var/tag_target				//the tag of the docking controller that we are trying to dock with
 	var/dock_state = STATE_UNDOCKED
 	var/control_mode = MODE_NONE
-	var/confirm_sent = 0		//so we don't spam confirmation messages
+	var/response_sent = 0		//so we don't spam confirmation messages
 
 /datum/computer/file/embedded_program/docking_controller/receive_signal(datum/signal/signal, receive_method, receive_param)
 	var/receive_tag = signal.data["tag"]		//for docking signals, this is the sender id
@@ -48,7 +48,7 @@
 			else if (control_mode == MODE_SERVER && dock_state == STATE_DOCKING && receive_tag == tag_target)	//client just sent us the confirmation back, we're done with the docking process
 				dock_state = STATE_DOCKED
 				finish_docking()	//server done docking!
-				confirm_sent = 0
+				response_sent = 0
 			else
 				send_docking_command(tag_target, "abort_dock")	//not expecting confirmation for anything - tell the other guy.
 		
@@ -86,26 +86,26 @@
 	switch(dock_state)
 		if (STATE_DOCKING)	//waiting for our docking port to be ready for docking
 			if (ready_for_docking())
-				if (!confirm_sent)
+				if (!response_sent)
 					send_docking_command(tag_target, "confirm_dock")	//tell the other guy we're ready
-					confirm_sent = 1
+					response_sent = 1
 				
 				if (control_mode == MODE_CLIENT)	//client doesn't need to do anything further
 					dock_state = STATE_DOCKED
 					finish_docking()	//client done docking!
-					confirm_sent = 0
+					response_sent = 0
 		if (STATE_UNDOCKING)
 			if (ready_for_docking())
 				if (control_mode == MODE_CLIENT)
-					if (!confirm_sent)
+					if (!response_sent)
 						send_docking_command(tag_target, "request_undock")	//tell the server we want to undock now.
-						confirm_sent = 1
+						response_sent = 1
 				else if (control_mode == MODE_SERVER)
 					send_docking_command(tag_target, "confirm_undock")	//tell the client we are OK to undock.
 					reset()		//server is done undocking!
 	
-	if (dock_state != STATE_DOCKING || dock_state != STATE_UNDOCKING)
-		confirm_sent = 0
+	if (dock_state != STATE_DOCKING && dock_state != STATE_UNDOCKING)
+		response_sent = 0
 	
 	//handle invalid states
 	if (control_mode == MODE_NONE && dock_state != STATE_UNDOCKED)
@@ -169,7 +169,7 @@
 	dock_state = STATE_UNDOCKED
 	control_mode = MODE_NONE
 	tag_target = null
-	confirm_sent = 0
+	response_sent = 0
 
 //returns 1 if we are saftely undocked (and the shuttle can leave)
 /datum/computer/file/embedded_program/docking_controller/proc/undocked()
@@ -183,6 +183,41 @@
 	post_signal(signal)
 
 
+//for debugging
+
+/datum/computer/file/embedded_program/docking_controller/proc/print_state()
+	world << "id_tag: [id_tag]"
+	world << "dock_state: [dock_state]"
+	world << "control_mode: [control_mode]"
+	world << "tag_target: [tag_target]"
+	world << "response_sent: [response_sent]"
+
+/datum/computer/file/embedded_program/docking_controller/post_signal(datum/signal/signal, comm_line)
+	world << "Program [id_tag] sent a message!"
+	print_state()
+	world << "[id_tag] sent command \"[signal.data["command"]]\" to \"[signal.data["recipient"]]\""
+
+/obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/verb/view_state()
+	set src in view(1)
+	src.program:print_state()
+
+/obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/verb/spoof_signal(var/command as text, var/sender as text)
+	set src in view(1)
+	var/datum/signal/signal = new
+	signal.data["tag"] = sender
+	signal.data["command"] = command
+	signal.data["recipient"] = id_tag
+
+	src.program:receive_signal(signal)
+
+/obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/verb/debug_init_dock(var/target as text)
+	set src in view(1)
+	src.program:initiate_docking(target)
+
+/obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/verb/debug_init_undock(var/target as text)
+	set src in view(1)
+	src.program:initiate_undocking()
+	
 #undef STATE_UNDOCKED
 #undef STATE_DOCKING
 #undef STATE_UNDOCKING
