@@ -62,6 +62,7 @@
 /datum/computer/file/embedded_program/docking_controller/airlock/reset()
 	airlock_prog.stop_cycling()
 	airlock_prog.close_doors()
+	airlock_override = 0
 	..()
 
 //An airlock controller to be used by the airlock-based docking port controller.
