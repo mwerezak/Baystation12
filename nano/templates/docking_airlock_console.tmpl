@@ -4,16 +4,16 @@
 			Docking Port Status:
 		</div>
 		<div class="itemContent">
-			{{if docking_status.state == "docked"}}
-			DOCKED
-			{{else docking_status.state == "docking"}}
-			UNDOCKING
-			{{else docking_status.state == "undocking"}}
-			DOCKING
-			{{else docking_status.state == "undocked"}}
-			UNDOCKED
+			{{if docking_status == "docked"}}
+			<span class="good">DOCKED</span>
+			{{else docking_status == "docking"}}
+			<span class="average">DOCKING</span>
+			{{else docking_status == "undocking"}}
+			<span class="average">UNDOCKING</span>
+			{{else docking_status == "undocked"}}
+			<span class="dark" style="font-weight: bold">UNDOCKED</span>
 			{{else}}
-			ERROR
+			<span class="bad">ERROR</span>
 			{{/if}}
 		</div>
 	</div>
@@ -34,23 +34,23 @@
 <div class="item" style="padding-top: 10px">
 	<div class="item">
 		<div class="itemContent" style="width: 100%">
-			{{:~link('Cycle to Exterior', 'arrowthickstop-1-w', {'command' : 'cycle_ext'}, processing ? 'disabled' : null)}}
-			{{:~link('Cycle to Interior', 'arrowthickstop-1-e', {'command' : 'cycle_int'}, processing ? 'disabled' : null)}}
+			{{:~link('Cycle to Exterior', 'arrowthickstop-1-w', {'command' : 'cycle_ext'}, (processing || airlock_disabled) ? 'disabled' : null)}}
+			{{:~link('Cycle to Interior', 'arrowthickstop-1-e', {'command' : 'cycle_int'}, (processing || airlock_disabled) ? 'disabled' : null)}}
 		</div>
 		<div class="itemContent" style="padding-top: 2px; width: 100%">
 		{{if interior_status.state == "open"}}
-			{{:~link('Force exterior door', 'alert', {'command' : 'force_ext'}, null, 'redBackground')}}
+			{{:~link('Force exterior door', 'alert', {'command' : 'force_ext'}, airlock_disabled ? 'disabled' : null, 'redBackground')}}
 		{{else}}
-			{{:~link('Force exterior door', 'alert', {'command' : 'force_ext'}, null, processing ? 'yellowBackground' : null)}}
+			{{:~link('Force exterior door', 'alert', {'command' : 'force_ext'}, airlock_disabled ? 'disabled' : null, processing ? 'yellowBackground' : null)}}
 		{{/if}}
 		{{if exterior_status.state == "open"}}
-			{{:~link('Force interior door', 'alert', {'command' : 'force_int'}, null, 'redBackground')}}
+			{{:~link('Force interior door', 'alert', {'command' : 'force_int'}, airlock_disabled ? 'disabled' : null, 'redBackground')}}
 		{{else}}
-			{{:~link('Force interior door', 'alert', {'command' : 'force_int'}, null, processing ? 'yellowBackground' : null)}}
+			{{:~link('Force interior door', 'alert', {'command' : 'force_int'}, airlock_disabled ? 'disabled' : null, processing ? 'yellowBackground' : null)}}
 		{{/if}}
 		</div>
 	</div>
 	<div class="item" style="padding-top: 10px; width: 100%">
-			{{:~link('Abort', 'cancel', {'command' : 'abort'}, processing ? null : 'disabled', processing ? 'redBackground' : null)}}
+			{{:~link('Abort', 'cancel', {'command' : 'abort'}, (processing && !airlock_disabled) ? null : 'disabled', processing ? 'redBackground' : null)}}
 	</div>
 </div>

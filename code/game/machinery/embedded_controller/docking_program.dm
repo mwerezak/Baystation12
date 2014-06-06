@@ -203,7 +203,14 @@
 	signal.data["recipient"] = recipient
 	post_signal(signal)
 
-
+/datum/computer/file/embedded_program/docking/proc/get_docking_status()
+	switch (dock_state)
+		if (STATE_UNDOCKED) return "undocked"
+		if (STATE_DOCKING) return "docking"
+		if (STATE_UNDOCKING) return "undocking"
+		if (STATE_DOCKED) return "docked"
+	
+	
 //for debugging
 
 /datum/computer/file/embedded_program/docking/proc/print_state()
@@ -217,12 +224,13 @@
 	world << "Program [id_tag] sent a message!"
 	print_state()
 	world << "[id_tag] sent command \"[signal.data["command"]]\" to \"[signal.data["recipient"]]\""
+	..(signal)
 
-/obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/verb/view_state()
+/obj/machinery/embedded_controller/radio/airlock/docking_port/verb/view_state()
 	set src in view(1)
 	src.program:print_state()
 
-/obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/verb/spoof_signal(var/command as text, var/sender as text)
+/obj/machinery/embedded_controller/radio/airlock/docking_port/verb/spoof_signal(var/command as text, var/sender as text)
 	set src in view(1)
 	var/datum/signal/signal = new
 	signal.data["tag"] = sender
@@ -231,11 +239,11 @@
 
 	src.program:receive_signal(signal)
 
-/obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/verb/debug_init_dock(var/target as text)
+/obj/machinery/embedded_controller/radio/airlock/docking_port/verb/debug_init_dock(var/target as text)
 	set src in view(1)
 	src.program:initiate_docking(target)
 
-/obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/verb/debug_init_undock(var/target as text)
+/obj/machinery/embedded_controller/radio/airlock/docking_port/verb/debug_init_undock()
 	set src in view(1)
 	src.program:initiate_undocking()
 	

@@ -1,16 +1,11 @@
 //a docking port that uses a single door
 /obj/machinery/embedded_controller/radio/simple_docking_controller
 	name = "docking hatch controller"
-	var/datum/computer/file/embedded_program/docking/simple/control_prog
 	var/tag_door
 
 /obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/initialize()
-	control_prog = new/datum/computer/file/embedded_program/docking/simple(src)
-	control_prog.tag_door = tag_door
-	program = control_prog
-	
-	spawn(10)
-		control_prog.signal_door("update")		//signals connected doors to update their status
+	program = new/datum/computer/file/embedded_program/docking/simple(src)
+
 /*
 /obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null)
 	var/data[0]
@@ -58,10 +53,20 @@
 /datum/computer/file/embedded_program/docking/simple
 	var/tag_door
 
-/datum/computer/file/embedded_program/docking/simple/New()
+/datum/computer/file/embedded_program/docking/simple/New(var/obj/machinery/embedded_controller/M)
+	..(M)
 	memory["door_status"] = list(state = "closed", lock = "locked")		//assume closed and locked in case the doors dont report in
 	memory["door_status"] = list(state = "closed", lock = "locked")
 
+	if (istype(M, /obj/machinery/embedded_controller/radio/simple_docking_controller))
+		var/obj/machinery/embedded_controller/radio/simple_docking_controller/controller = M
+		
+		tag_door = controller.tag_door
+			
+		spawn(10)
+			signal_door("update")		//signals connected doors to update their status
+		
+	
 /datum/computer/file/embedded_program/docking/simple/receive_signal(datum/signal/signal, receive_method, receive_param)
 	var/receive_tag = signal.data["tag"]
 	if(!receive_tag) return
