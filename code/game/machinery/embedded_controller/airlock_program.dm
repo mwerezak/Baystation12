@@ -170,7 +170,7 @@
 				signalPump(tag_airpump, 0)
 	
 	//the airlock will not allow itself to continue to cycle when any of the doors are forced open.
-	if (state && !check_doors_closed())
+	if (state && !check_doors_secured())
 		stop_cycling()
 	
 	switch(state)
@@ -228,9 +228,11 @@
 /datum/computer/file/embedded_program/airlock/proc/done_cycling()
 	return (state == STATE_WAIT && target_state == TARGET_NONE)
 
-
-/datum/computer/file/embedded_program/airlock/proc/check_doors_closed()
-	return (memory["interior_status"]["state"] == "closed" && memory["exterior_status"]["state"] == "closed")
+//are the doors closed and locked?
+/datum/computer/file/embedded_program/airlock/proc/check_doors_secured()
+	var/ext_closed = (memory["exterior_status"]["state"] == "closed" &&  memory["exterior_status"]["lock"] == "locked")
+	var/int_closed = (memory["interior_status"]["state"] == "closed" &&  memory["interior_status"]["lock"] == "locked")
+	return (ext_closed && int_closed)
 
 /datum/computer/file/embedded_program/airlock/proc/signalDoor(var/tag, var/command)
 	var/datum/signal/signal = new

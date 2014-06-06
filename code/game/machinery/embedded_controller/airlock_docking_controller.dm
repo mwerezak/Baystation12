@@ -1,23 +1,67 @@
 //a docking port based on an airlock
 /obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port
 	name = "docking port controller"
+	var/datum/computer/file/embedded_program/airlock/docking/airlock_prog
+	var/datum/computer/file/embedded_program/docking_controller/airlock/docking_prog
 
 /obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/initialize()
-	var/datum/computer/file/embedded_program/airlock/docking/airlock_controller = new/datum/computer/file/embedded_program/airlock/docking(src)
+	airlock_prog = new/datum/computer/file/embedded_program/airlock/docking(src)
 
-	airlock_controller.tag_exterior_door = tag_exterior_door
-	airlock_controller.tag_interior_door = tag_interior_door
-	airlock_controller.tag_airpump = tag_airpump
-	airlock_controller.tag_chamber_sensor = tag_chamber_sensor
-	airlock_controller.tag_exterior_sensor = tag_exterior_sensor
-	airlock_controller.tag_interior_sensor = tag_interior_sensor
-	airlock_controller.memory["secure"] = 1
+	airlock_prog.tag_exterior_door = tag_exterior_door
+	airlock_prog.tag_interior_door = tag_interior_door
+	airlock_prog.tag_airpump = tag_airpump
+	airlock_prog.tag_chamber_sensor = tag_chamber_sensor
+	airlock_prog.tag_exterior_sensor = tag_exterior_sensor
+	airlock_prog.tag_interior_sensor = tag_interior_sensor
+	airlock_prog.memory["secure"] = 1
 	
-	program = new/datum/computer/file/embedded_program/docking_controller/airlock/(src, airlock_controller)
+	docking_prog = new/datum/computer/file/embedded_program/docking_controller/airlock/(src, airlock_prog)
+	program = docking_prog
 	
 	spawn(10)
-		airlock_controller.signalDoor(tag_exterior_door, "update")		//signals connected doors to update their status
-		airlock_controller.signalDoor(tag_interior_door, "update")
+		airlock_prog.signalDoor(tag_exterior_door, "update")		//signals connected doors to update their status
+		airlock_prog.signalDoor(tag_interior_door, "update")
+
+/obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null)
+	var/data[0]
+
+	data = list(
+		"chamber_pressure" = round(airlock_prog.memory["chamber_sensor_pressure"]),
+		"exterior_status" = airlock_prog.memory["exterior_status"],
+		"interior_status" = airlock_prog.memory["interior_status"],
+		"processing" = airlock_prog.memory["processing"],
+	)
+
+	ui = nanomanager.try_update_ui(user, src, ui_key, ui, data)
+
+	if (!ui)
+		ui = new(user, src, ui_key, "simple_airlock_console.tmpl", name, 470, 290)
+
+		ui.set_initial_data(data)
+
+		ui.open()
+
+		ui.set_auto_update(1)
+
+/obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/Topic(href, href_list)
+	var/clean = 0
+	switch(href_list["command"])	//anti-HTML-hacking checks
+		if("cycle_ext")
+			clean = 1
+		if("cycle_int")
+			clean = 1
+		if("force_ext")
+			clean = 1
+		if("force_int")
+			clean = 1
+		if("abort")
+			clean = 1
+
+	if(clean)
+		program.receive_user_command(href_list["command"])
+
+	return 1
+
 
 
 //A docking controller for an airlock based docking port
@@ -33,6 +77,10 @@
 /datum/computer/file/embedded_program/docking_controller/airlock/receive_user_command(command)
 	..(command)
 	airlock_prog.receive_user_command(command)	//pass along to subprograms
+
+/datum/computer/file/embedded_program/docking_controller/airlock/process()
+	airlock_prog.process()
+	..()
 
 /datum/computer/file/embedded_program/docking_controller/airlock/receive_signal(datum/signal/signal, receive_method, receive_param)
 	..(signal, receive_method, receive_param)
@@ -57,7 +105,7 @@
 
 //are we ready for undocking?
 /datum/computer/file/embedded_program/docking_controller/airlock/ready_for_undocking()
-	return (airlock_prog.check_doors_closed() || airlock_override)
+	return (airlock_prog.check_doors_secured() || airlock_override)
 
 /datum/computer/file/embedded_program/docking_controller/airlock/reset()
 	airlock_prog.stop_cycling()
