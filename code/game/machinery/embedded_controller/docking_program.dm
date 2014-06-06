@@ -26,13 +26,15 @@
 */
 
 
-/datum/computer/file/embedded_program/docking_controller
+/datum/computer/file/embedded_program/docking
 	var/tag_target				//the tag of the docking controller that we are trying to dock with
 	var/dock_state = STATE_UNDOCKED
 	var/control_mode = MODE_NONE
 	var/response_sent = 0		//so we don't spam confirmation messages
+	
+	var/override_enabled = 0	//skips checks for the docking port being ready
 
-/datum/computer/file/embedded_program/docking_controller/receive_signal(datum/signal/signal, receive_method, receive_param)
+/datum/computer/file/embedded_program/docking/receive_signal(datum/signal/signal, receive_method, receive_param)
 	var/receive_tag = signal.data["tag"]		//for docking signals, this is the sender id
 	var/command = signal.data["command"]
 	var/recipient = signal.data["recipient"]	//the intended recipient of the docking signal
@@ -81,11 +83,19 @@
 		if ("dock_error")
 			if (receive_tag == tag_target)
 				reset()		//something really bad happened
+		
+		if ("enable_override")
+			if (receive_tag == tag_target)
+				override_enabled = 1
 
-/datum/computer/file/embedded_program/docking_controller/process()
+		if ("disable_override")
+			if (receive_tag == tag_target)
+				override_enabled = 0
+
+/datum/computer/file/embedded_program/docking/process()
 	switch(dock_state)
 		if (STATE_DOCKING)	//waiting for our docking port to be ready for docking
-			if (ready_for_docking())
+			if (ready_for_docking() || override_enabled)
 				if (!response_sent)
 					send_docking_command(tag_target, "confirm_dock")	//tell the other guy we're ready
 					response_sent = 1
@@ -95,7 +105,7 @@
 					finish_docking()	//client done docking!
 					response_sent = 0
 		if (STATE_UNDOCKING)
-			if (ready_for_docking())
+			if (ready_for_undocking() || override_enabled)
 				if (control_mode == MODE_CLIENT)
 					if (!response_sent)
 						send_docking_command(tag_target, "request_undock")	//tell the server we want to undock now.
@@ -116,7 +126,7 @@
 		control_mode = MODE_NONE
 
 
-/datum/computer/file/embedded_program/docking_controller/proc/initiate_docking(var/target)
+/datum/computer/file/embedded_program/docking/proc/initiate_docking(var/target)
 	if (dock_state != STATE_UNDOCKED || control_mode == MODE_SERVER)	//must be undocked and not serving another request to begin a new docking handshake
 		return
 	
@@ -125,7 +135,7 @@
 	
 	send_docking_command(tag_target, "request_dock")
 
-/datum/computer/file/embedded_program/docking_controller/proc/initiate_undocking()
+/datum/computer/file/embedded_program/docking/proc/initiate_undocking()
 	if (dock_state != STATE_DOCKED || control_mode != MODE_CLIENT)		//must be docked and must be client to start undocking
 		return
 	
@@ -136,26 +146,26 @@
 
 
 //tell the docking port to start getting ready for docking - e.g. pressurize
-/datum/computer/file/embedded_program/docking_controller/proc/prepare_for_docking()
+/datum/computer/file/embedded_program/docking/proc/prepare_for_docking()
 	return
 
 //are we ready for docking?
-/datum/computer/file/embedded_program/docking_controller/proc/ready_for_docking()
+/datum/computer/file/embedded_program/docking/proc/ready_for_docking()
 	return 1
 
 //we are docked, open the doors or whatever.
-/datum/computer/file/embedded_program/docking_controller/proc/finish_docking()
+/datum/computer/file/embedded_program/docking/proc/finish_docking()
 	return
 
 //tell the docking port to start getting ready for undocking - e.g. close those doors.
-/datum/computer/file/embedded_program/docking_controller/proc/prepare_for_undocking()
+/datum/computer/file/embedded_program/docking/proc/prepare_for_undocking()
 	return
 
 //are we ready for undocking?
-/datum/computer/file/embedded_program/docking_controller/proc/ready_for_undocking()
+/datum/computer/file/embedded_program/docking/proc/ready_for_undocking()
 	return 1
 
-/datum/computer/file/embedded_program/docking_controller/proc/initiate_abort()
+/datum/computer/file/embedded_program/docking/proc/initiate_abort()
 	switch(dock_state)
 		if (STATE_DOCKING)
 			send_docking_command(tag_target, "abort_dock")
@@ -165,17 +175,28 @@
 			dock_state = STATE_DOCKING	//redock
 			prepare_for_docking()
 
-/datum/computer/file/embedded_program/docking_controller/proc/reset()
+/datum/computer/file/embedded_program/docking/proc/enable_override()
+	override_enabled = 1
+	if (tag_target)
+		send_docking_command(tag_target, "enable_override")
+
+/datum/computer/file/embedded_program/docking/proc/disable_override()
+	override_enabled = 0
+	if (tag_target)
+		send_docking_command(tag_target, "disable_override")
+
+/datum/computer/file/embedded_program/docking/proc/reset()
 	dock_state = STATE_UNDOCKED
 	control_mode = MODE_NONE
 	tag_target = null
 	response_sent = 0
+	override_enabled = 0
 
 //returns 1 if we are saftely undocked (and the shuttle can leave)
-/datum/computer/file/embedded_program/docking_controller/proc/undocked()
+/datum/computer/file/embedded_program/docking/proc/undocked()
 	return (dock_state == STATE_UNDOCKED)
 
-/datum/computer/file/embedded_program/docking_controller/proc/send_docking_command(var/recipient, var/command)
+/datum/computer/file/embedded_program/docking/proc/send_docking_command(var/recipient, var/command)
 	var/datum/signal/signal = new
 	signal.data["tag"] = id_tag
 	signal.data["command"] = command
@@ -185,14 +206,14 @@
 
 //for debugging
 
-/datum/computer/file/embedded_program/docking_controller/proc/print_state()
+/datum/computer/file/embedded_program/docking/proc/print_state()
 	world << "id_tag: [id_tag]"
 	world << "dock_state: [dock_state]"
 	world << "control_mode: [control_mode]"
 	world << "tag_target: [tag_target]"
 	world << "response_sent: [response_sent]"
 
-/datum/computer/file/embedded_program/docking_controller/post_signal(datum/signal/signal, comm_line)
+/datum/computer/file/embedded_program/docking/post_signal(datum/signal/signal, comm_line)
 	world << "Program [id_tag] sent a message!"
 	print_state()
 	world << "[id_tag] sent command \"[signal.data["command"]]\" to \"[signal.data["recipient"]]\""
