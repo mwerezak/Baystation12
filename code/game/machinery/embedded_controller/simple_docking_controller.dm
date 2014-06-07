@@ -6,47 +6,39 @@
 /obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/initialize()
 	program = new/datum/computer/file/embedded_program/docking/simple(src)
 
-/*
-/obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null)
+/obj/machinery/embedded_controller/radio/airlock/docking_port/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null)
 	var/data[0]
 
 	data = list(
-		"chamber_pressure" = round(airlock_prog.memory["chamber_sensor_pressure"]),
-		"exterior_status" = airlock_prog.memory["exterior_status"],
-		"interior_status" = airlock_prog.memory["interior_status"],
-		"processing" = airlock_prog.memory["processing"],
+		"docking_status" = docking_program.get_docking_status(),
+		"override_enabled" = docking_program.override_enabled,
 	)
 
 	ui = nanomanager.try_update_ui(user, src, ui_key, ui, data)
 
 	if (!ui)
 		ui = new(user, src, ui_key, "simple_airlock_console.tmpl", name, 470, 290)
-
 		ui.set_initial_data(data)
-
 		ui.open()
-
 		ui.set_auto_update(1)
 
-/obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/Topic(href, href_list)
+/obj/machinery/embedded_controller/radio/airlock/docking_port/Topic(href, href_list)
+	world << "[id_tag] recieved command from topic: [href_list["command"]]"
+
+	if (!in_range(usr))
+		return
+	
 	var/clean = 0
 	switch(href_list["command"])	//anti-HTML-hacking checks
-		if("cycle_ext")
+		if("force_door")
 			clean = 1
-		if("cycle_int")
+		if("toggle_override")
 			clean = 1
-		if("force_ext")
-			clean = 1
-		if("force_int")
-			clean = 1
-		if("abort")
-			clean = 1
-
+	
 	if(clean)
 		program.receive_user_command(href_list["command"])
 
 	return 1
-*/
 
 
 //A docking controller for a simple door based docking port
@@ -69,11 +61,12 @@
 	
 /datum/computer/file/embedded_program/docking/simple/receive_signal(datum/signal/signal, receive_method, receive_param)
 	var/receive_tag = signal.data["tag"]
+	
 	if(!receive_tag) return
 	
-	if(receive_tag==tag_exterior_door)
-		memory["exterior_status"]["state"] = signal.data["door_status"]
-		memory["exterior_status"]["lock"] = signal.data["lock_status"]
+	if(receive_tag==tag_door)
+		memory["door_status"]["state"] = signal.data["door_status"]
+		memory["door_status"]["lock"] = signal.data["lock_status"]
 	
 	..(signal, receive_method, receive_param)
 	
@@ -81,11 +74,18 @@
 	if (!override_enabled) return	//only allow manually controlling the door when the override is enabled.
 	
 	switch(command)
-		if("force_open")
-			open_door()
-		if("force_close")
-			close_door()	
-	
+		if("force_door")
+			if(memory["door_status"]["state"] == "open")
+				close_door()
+			else
+				open_door()
+		if("toggle_override")
+			if (override_enabled)
+				disable_override()
+			else
+				enable_override()
+
+
 /datum/computer/file/embedded_program/docking/simple/proc/signal_door(var/command)
 	var/datum/signal/signal = new
 	signal.data["tag"] = tag_door
@@ -113,17 +113,17 @@
 	return 1	//don't need to do anything
 
 //we are docked, open the doors or whatever.
-/datum/computer/file/embedded_program/docking/airlock/finish_docking()
+/datum/computer/file/embedded_program/docking/simple/finish_docking()
 	open_door()
 
 //tell the docking port to start getting ready for undocking - e.g. close those doors.
-/datum/computer/file/embedded_program/docking/airlock/prepare_for_undocking()
+/datum/computer/file/embedded_program/docking/simple/prepare_for_undocking()
 	close_door()
 
 //are we ready for undocking?
-/datum/computer/file/embedded_program/docking/airlock/ready_for_undocking()
-	return (door_override || (memory["door_status"]["state"] == "closed" && memory["door_status"]["lock"] == "locked"))
+/datum/computer/file/embedded_program/docking/simple/ready_for_undocking()
+	return (memory["door_status"]["state"] == "closed" && memory["door_status"]["lock"] == "locked")
 
-/datum/computer/file/embedded_program/docking/airlock/reset()
+/datum/computer/file/embedded_program/docking/simple/reset()
 	close_door()
 	..()
