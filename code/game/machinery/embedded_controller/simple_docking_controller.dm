@@ -26,8 +26,6 @@
 		ui.set_auto_update(1)
 
 /obj/machinery/embedded_controller/radio/simple_docking_controller/Topic(href, href_list)
-	world << "[id_tag] recieved command from topic: [href_list["command"]]"
-
 	if (!in_range(loc, usr))
 		return
 	
@@ -39,7 +37,6 @@
 			clean = 1
 	
 	if(clean)
-		world << "Sent command to program"
 		program.receive_user_command(href_list["command"])
 
 	return 1
@@ -75,7 +72,6 @@
 	..(signal, receive_method, receive_param)
 	
 /datum/computer/file/embedded_program/docking/simple/receive_user_command(command)
-	world << "Program recieved command"
 	switch(command)
 		if("force_door")
 			if (override_enabled)
@@ -84,7 +80,6 @@
 				else
 					open_door()
 		if("toggle_override")
-			world << "[id_tag]: toggling override"
 			if (override_enabled)
 				disable_override()
 			else

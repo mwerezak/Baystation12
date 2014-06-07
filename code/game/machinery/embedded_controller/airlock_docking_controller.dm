@@ -32,8 +32,6 @@
 		ui.set_auto_update(1)
 
 /obj/machinery/embedded_controller/radio/airlock/docking_port/Topic(href, href_list)
-	world << "[id_tag] recieved command from topic: [href_list["command"]]"
-
 	if (!in_range(loc, usr))
 		return
 	
@@ -70,7 +68,6 @@
 
 /datum/computer/file/embedded_program/docking/airlock/receive_user_command(command)
 	if (command == "toggle_override")
-		world << "[id_tag]: toggling override"
 		if (override_enabled)
 			disable_override()
 		else
@@ -78,7 +75,6 @@
 		return
 	
 	..(command)
-	world << "DEBUG: /datum/computer/file/embedded_program/docking/airlock/receive_user_command([command])"
 	airlock_program.receive_user_command(command)	//pass along to subprograms
 
 /datum/computer/file/embedded_program/docking/airlock/process()
@@ -122,9 +118,7 @@
 	var/datum/computer/file/embedded_program/docking/airlock/master_prog
 
 /datum/computer/file/embedded_program/airlock/docking/receive_user_command(command)
-	world << "DEBUG: /datum/computer/file/embedded_program/airlock/docking/receive_user_command([command])"
 	if (master_prog.undocked() || master_prog.override_enabled)	//only allow the port to be used as an airlock if nothing is docked here or the override is enabled
-		world << "Sent command \"[command]\" to parent."
 		..(command)
 
 /datum/computer/file/embedded_program/airlock/docking/proc/open_doors()
