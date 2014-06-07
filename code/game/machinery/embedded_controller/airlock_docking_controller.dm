@@ -34,7 +34,7 @@
 /obj/machinery/embedded_controller/radio/airlock/docking_port/Topic(href, href_list)
 	world << "[id_tag] recieved command from topic: [href_list["command"]]"
 
-	if (!in_range(usr))
+	if (!in_range(loc, usr))
 		return
 	
 	var/clean = 0
@@ -70,6 +70,7 @@
 
 /datum/computer/file/embedded_program/docking/airlock/receive_user_command(command)
 	if (command == "toggle_override")
+		world << "[id_tag]: toggling override"
 		if (override_enabled)
 			disable_override()
 		else
@@ -133,3 +134,43 @@
 /datum/computer/file/embedded_program/airlock/docking/cycleDoors(var/target)
 	if (master_prog.undocked() || master_prog.override_enabled)	//only allow the port to be used as an airlock if nothing is docked here or the override is enabled
 		..(target)
+
+/*** DEBUG VERBS ***/
+
+/datum/computer/file/embedded_program/docking/proc/print_state()
+	world << "id_tag: [id_tag]"
+	world << "dock_state: [dock_state]"
+	world << "control_mode: [control_mode]"
+	world << "tag_target: [tag_target]"
+	world << "response_sent: [response_sent]"
+
+/datum/computer/file/embedded_program/docking/post_signal(datum/signal/signal, comm_line)
+	world << "Program [id_tag] sent a message!"
+	print_state()
+	world << "[id_tag] sent command \"[signal.data["command"]]\" to \"[signal.data["recipient"]]\""
+	..(signal)
+
+/obj/machinery/embedded_controller/radio/airlock/docking_port/verb/view_state()
+	set category = "Debug"
+	set src in view(1)
+	src.program:print_state()
+
+/obj/machinery/embedded_controller/radio/airlock/docking_port/verb/spoof_signal(var/command as text, var/sender as text)
+	set category = "Debug"
+	set src in view(1)
+	var/datum/signal/signal = new
+	signal.data["tag"] = sender
+	signal.data["command"] = command
+	signal.data["recipient"] = id_tag
+
+	src.program:receive_signal(signal)
+
+/obj/machinery/embedded_controller/radio/airlock/docking_port/verb/debug_init_dock(var/target as text)
+	set category = "Debug"
+	set src in view(1)
+	src.program:initiate_docking(target)
+
+/obj/machinery/embedded_controller/radio/airlock/docking_port/verb/debug_init_undock()
+	set category = "Debug"
+	set src in view(1)
+	src.program:initiate_undocking()

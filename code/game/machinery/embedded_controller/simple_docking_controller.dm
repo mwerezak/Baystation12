@@ -2,11 +2,14 @@
 /obj/machinery/embedded_controller/radio/simple_docking_controller
 	name = "docking hatch controller"
 	var/tag_door
+	var/datum/computer/file/embedded_program/docking/simple/docking_program
 
-/obj/machinery/embedded_controller/radio/airlock/airlock_controller/docking_port/initialize()
-	program = new/datum/computer/file/embedded_program/docking/simple(src)
+/obj/machinery/embedded_controller/radio/simple_docking_controller/initialize()
+	set_frequency(frequency)
+	docking_program = new/datum/computer/file/embedded_program/docking/simple(src)
+	program = docking_program
 
-/obj/machinery/embedded_controller/radio/airlock/docking_port/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null)
+/obj/machinery/embedded_controller/radio/simple_docking_controller/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null)
 	var/data[0]
 
 	data = list(
@@ -22,10 +25,10 @@
 		ui.open()
 		ui.set_auto_update(1)
 
-/obj/machinery/embedded_controller/radio/airlock/docking_port/Topic(href, href_list)
+/obj/machinery/embedded_controller/radio/simple_docking_controller/Topic(href, href_list)
 	world << "[id_tag] recieved command from topic: [href_list["command"]]"
 
-	if (!in_range(usr))
+	if (!in_range(loc, usr))
 		return
 	
 	var/clean = 0
@@ -36,12 +39,13 @@
 			clean = 1
 	
 	if(clean)
+		world << "Sent command to program"
 		program.receive_user_command(href_list["command"])
 
 	return 1
 
 
-//A docking controller for a simple door based docking port
+//A docking controller program for a simple door based docking port
 /datum/computer/file/embedded_program/docking/simple
 	var/tag_door
 
@@ -71,15 +75,16 @@
 	..(signal, receive_method, receive_param)
 	
 /datum/computer/file/embedded_program/docking/simple/receive_user_command(command)
-	if (!override_enabled) return	//only allow manually controlling the door when the override is enabled.
-	
+	world << "Program recieved command"
 	switch(command)
 		if("force_door")
-			if(memory["door_status"]["state"] == "open")
-				close_door()
-			else
-				open_door()
+			if (override_enabled)
+				if(memory["door_status"]["state"] == "open")
+					close_door()
+				else
+					open_door()
 		if("toggle_override")
+			world << "[id_tag]: toggling override"
 			if (override_enabled)
 				disable_override()
 			else
@@ -127,3 +132,30 @@
 /datum/computer/file/embedded_program/docking/simple/reset()
 	close_door()
 	..()
+
+/*** DEBUG VERBS ***/
+
+/obj/machinery/embedded_controller/radio/simple_docking_controller/verb/view_state()
+	set category = "Debug"
+	set src in view(1)
+	src.program:print_state()
+
+/obj/machinery/embedded_controller/radio/simple_docking_controller/verb/spoof_signal(var/command as text, var/sender as text)
+	set category = "Debug"
+	set src in view(1)
+	var/datum/signal/signal = new
+	signal.data["tag"] = sender
+	signal.data["command"] = command
+	signal.data["recipient"] = id_tag
+
+	src.program:receive_signal(signal)
+
+/obj/machinery/embedded_controller/radio/simple_docking_controller/verb/debug_init_dock(var/target as text)
+	set category = "Debug"
+	set src in view(1)
+	src.program:initiate_docking(target)
+
+/obj/machinery/embedded_controller/radio/simple_docking_controller/verb/debug_init_undock()
+	set category = "Debug"
+	set src in view(1)
+	src.program:initiate_undocking()
