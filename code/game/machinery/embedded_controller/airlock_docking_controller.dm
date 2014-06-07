@@ -49,6 +49,8 @@
 			clean = 1
 		if("abort")
 			clean = 1
+		if("toggle_override")
+			clean = 1
 
 	if(clean)
 		program.receive_user_command(href_list["command"])
@@ -67,6 +69,13 @@
 	airlock_program.master_prog = src
 
 /datum/computer/file/embedded_program/docking/airlock/receive_user_command(command)
+	if (command == "toggle_override")
+		if (override_enabled)
+			disable_override()
+		else
+			enable_override()
+		return
+	
 	..(command)
 	world << "DEBUG: /datum/computer/file/embedded_program/docking/airlock/receive_user_command([command])"
 	airlock_program.receive_user_command(command)	//pass along to subprograms
