@@ -3,19 +3,45 @@
 		<div class="itemLabel">
 			Docking Port Status:
 		</div>
-		<div class="itemContent">
-			{{if docking_status == "docked"}}
-				<span class="good">DOCKED</span><span style="float: right">{{:~link('Override', 'alert', {'command' : 'toggle_override'}, null, airlock_disabled ? null : 'redBackground')}}</span>
-			{{else docking_status == "docking"}}
-				<span class="average">DOCKING</span><span style="float: right">{{:~link('Override', 'alert', {'command' : 'toggle_override'}, null, airlock_disabled ? null : 'redBackground')}}</span>
-			{{else docking_status == "undocking"}}
-				<span class="average">UNDOCKING</span><span style="float: right">{{:~link('Override', 'alert', {'command' : 'toggle_override'}, null, airlock_disabled ? null : 'redBackground')}}</span>
-			{{else docking_status == "undocked"}}
-				<span class="dark" style="font-weight: bold">UNDOCKED</span>
-			{{else}}
-				<span class="bad">ERROR</span>
-			{{/if}}
-		</div>
+		{{if docking_status == "docked"}}
+			<div class="itemContent" style="float:left">
+				{{if airlock_disabled}}
+					<span class="good" style="float:left">DOCKED</span>
+				{{else}}
+					<span class="bad" style="float:left">DOCKED-OVERRIDE ENABLED</span>
+				{{/if}}
+				<span style="float:right">
+					{{:~link('Override', 'alert', {'command' : 'toggle_override'}, null, airlock_disabled ? null : 'redBackground')}}
+				</span>
+			</div>
+		{{else docking_status == "docking"}}
+			<div class="itemContent" style="float:left">
+				{{if airlock_disabled}}
+					<span class="average" style="float:left">DOCKING</span>
+				{{else}}
+					<span class="bad" style="float:left">DOCKING-OVERRIDE ENABLED</span>
+				{{/if}}
+				<span style="float:right">
+					{{:~link('Override', 'alert', {'command' : 'toggle_override'}, null, airlock_disabled ? null : 'redBackground')}}
+				</span>
+			</div>
+		{{else docking_status == "undocking"}}
+			<div class="itemContent" style="float:left">
+				{{if airlock_disabled}}
+					<span class="average" style="float:left">UNDOCKING</span>
+				{{else}}
+					<span class="bad" style="float:left">UNDOCKING-OVERRIDE ENABLED</span>
+				{{/if}}
+				<span style="float:right">
+					{{:~link('Override', 'alert', {'command' : 'toggle_override'}, null, airlock_disabled ? null : 'redBackground')}}
+				</span>
+			</div>
+		{{else docking_status == "undocked"}}
+			<span class="dark" style="font-weight: bold">NOT IN USE</span>
+		{{else}}
+			<span class="bad">ERROR</span>
+			{{:~link('Override', 'alert', {'command' : 'toggle_override'}, null, airlock_disabled ? null : 'redBackground')}}
+		{{/if}}
 	</div>
 </div>
 <div class="item" style="padding-top: 10px">
