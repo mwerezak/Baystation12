@@ -5,7 +5,7 @@
 	var/datum/computer/file/embedded_program/docking/simple/docking_program
 
 /obj/machinery/embedded_controller/radio/simple_docking_controller/initialize()
-	set_frequency(frequency)
+	..()
 	docking_program = new/datum/computer/file/embedded_program/docking/simple(src)
 	program = docking_program
 
@@ -26,8 +26,11 @@
 		ui.set_auto_update(1)
 
 /obj/machinery/embedded_controller/radio/simple_docking_controller/Topic(href, href_list)
-	if (!in_range(loc, usr))
+	if(..())
 		return
+	
+	usr.set_machine(src)
+	src.add_fingerprint(usr)
 	
 	var/clean = 0
 	switch(href_list["command"])	//anti-HTML-hacking checks

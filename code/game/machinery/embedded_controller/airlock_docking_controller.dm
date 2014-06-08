@@ -6,7 +6,7 @@
 	tag_secure = 1
 
 /obj/machinery/embedded_controller/radio/airlock/docking_port/initialize()
-	set_frequency(frequency)
+	..()
 	airlock_program = new/datum/computer/file/embedded_program/airlock/docking(src)
 	docking_program = new/datum/computer/file/embedded_program/docking/airlock(src, airlock_program)
 	program = docking_program
@@ -32,8 +32,11 @@
 		ui.set_auto_update(1)
 
 /obj/machinery/embedded_controller/radio/airlock/docking_port/Topic(href, href_list)
-	if (!in_range(loc, usr))
+	if(..())
 		return
+	
+	usr.set_machine(src)
+	src.add_fingerprint(usr)
 	
 	var/clean = 0
 	switch(href_list["command"])	//anti-HTML-hacking checks
