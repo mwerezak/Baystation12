@@ -3844,7 +3844,7 @@
 "bvV" = (/turf/simulated/floor{dir = 4; icon_state = "whitebluecorner"},/area/medical/research{name = "Research Division"})
 "bvW" = (/obj/structure/grille,/obj/structure/window/reinforced,/obj/structure/window/reinforced{dir = 4},/obj/structure/window/reinforced{dir = 1},/obj/structure/window/reinforced{dir = 8},/obj/machinery/door/firedoor/border_only{dir = 2},/turf/simulated/shuttle/plating,/area/medical/research{name = "Research Division"})
 "bvX" = (/turf/simulated/shuttle/wall{icon_state = "swall_s5"; dir = 2},/area/shuttle/research/station)
-"bvY" = (/obj/machinery/computer/shuttle_control/research{docking_controller_tag = "research_shuttle"},/turf/simulated/shuttle/floor,/area/shuttle/research/station)
+"bvY" = (/obj/machinery/computer/shuttle_control/research,/turf/simulated/shuttle/floor,/area/shuttle/research/station)
 "bvZ" = (/turf/simulated/shuttle/wall{icon_state = "swall_s9"; dir = 2},/area/shuttle/research/station)
 "bwa" = (/obj/structure/window/reinforced{dir = 8},/obj/structure/window/reinforced{dir = 1},/obj/structure/window/reinforced,/obj/structure/grille,/obj/structure/sign/securearea{desc = "A warning sign which reads 'EXTERNAL AIRLOCK'"; icon_state = "space"; layer = 4; name = "EXTERNAL AIRLOCK"; pixel_x = 0},/obj/machinery/door/firedoor/border_only{dir = 2},/turf/simulated/floor/plating,/area/quartermaster/storage)
 "bwb" = (/obj/structure/window/reinforced{dir = 4},/obj/structure/window/reinforced{dir = 1},/obj/structure/window/reinforced,/obj/structure/grille,/obj/machinery/door/firedoor/border_only{dir = 2},/turf/simulated/floor/plating,/area/quartermaster/storage)

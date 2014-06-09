@@ -190,7 +190,13 @@
 	control_mode = MODE_NONE
 	tag_target = null
 	response_sent = 0
-	override_enabled = 0
+	//override_enabled = 0	//turns out to be kind of counter-intuitive to reset this.
+
+/datum/computer/file/embedded_program/docking/proc/docked()
+	return (dock_state == STATE_DOCKED)
+
+/datum/computer/file/embedded_program/docking/proc/docked()
+	return (dock_state == STATE_DOCKED)
 
 /datum/computer/file/embedded_program/docking/proc/undocked()
 	return (dock_state == STATE_UNDOCKED)
@@ -206,6 +212,7 @@
 	signal.data["recipient"] = recipient
 	post_signal(signal)
 
+//this is mostly for NanoUI
 /datum/computer/file/embedded_program/docking/proc/get_docking_status()
 	switch (dock_state)
 		if (STATE_UNDOCKED) return "undocked"

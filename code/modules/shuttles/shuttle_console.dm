@@ -1,6 +1,7 @@
-#define STATUS_IDLE
-#define STATUS_LAUNCH
-#define STATUS_ARRIVE
+#define IDLE_STATE		0
+#define WAIT_LAUNCH		1
+#define WAIT_ARRIVE		2
+#define WAIT_FINISH		3
 
 /obj/machinery/computer/shuttle_control
 	name = "shuttle control console"
@@ -8,35 +9,57 @@
 	icon_state = "shuttle"
 	req_access = list(access_engine)
 	circuit = "/obj/item/weapon/circuitboard/engineering_shuttle"
-
-	//for mapping
+	
 	var/shuttle_tag  // Used to coordinate data in shuttle controller.
-	var/datum/shuttle/shuttle
-	var/docking_controller_tag	//tag of the controller used to coordinate docking
-	
-	var/datum/computer/file/embedded_program/docking/docking_controller	//the controller itself
 	var/hacked = 0   // Has been emagged, no access restrictions.
+	
+	var/process_state = IDLE_STATE
 
-/obj/machinery/computer/shuttle_control/initialize()
-	shuttle = shuttles[shuttle_tag]
+/obj/machinery/computer/shuttle_control/proc/launch_shuttle()
+	var/datum/shuttle/shuttle = shuttles[shuttle_tag]
 	
-	//search for our controller, if we have one.
-	if (docking_controller_tag)
-		for (var/obj/machinery/embedded_controller/radio/C in machines)	//only radio controllers are supported, for now...
-			if (C.id_tag == docking_controller_tag && istype(C.program, /datum/computer/file/embedded_program/docking))
-				docking_controller = C.program
+	if (shuttle.in_use && !skip_checks())
+		return
 	
+	shuttle.in_use = 1	//obtain an exclusive lock on the shuttle
+	
+	process_state = WAIT_LAUNCH
+	shuttle.undock()
 
 /obj/machinery/computer/shuttle_control/process()
-	/*
-	switch (launch_status)
+	if (!shuttles || !(shuttle_tag in shuttles))
+		return
 
-	if (wait_for_launch)
-		if (docking_controller && docking_controller.can_launch())
-			shuttles.jump_shuttle(shuttle_tag)
-			wait_for_launch = 0
-	*/
+	var/datum/shuttle/shuttle = shuttles[shuttle_tag]
 
+	switch(process_state)
+		if (WAIT_LAUNCH)
+			if (skip_checks() || shuttle.docking_controller.can_launch())
+				shuttle.short_jump()
+				process_state = WAIT_ARRIVE
+		if (WAIT_ARRIVE)
+			if (shuttle.moving_status == SHUTTLE_IDLE)
+				shuttle.dock()
+				process_state = WAIT_FINISH
+		if (WAIT_FINISH)
+			if (skip_checks() || shuttle.docking_controller.docked())
+				process_state = IDLE_STATE
+				shuttle.in_use = 0	//release lock
+
+/obj/machinery/computer/shuttle_control/proc/skip_checks()
+	var/datum/shuttle/shuttle = shuttles[shuttle_tag]
+
+	if (!shuttle.docking_controller || !shuttle.current_dock_target())
+		return 1	//shuttles without docking controllers or at locations without docking ports act like old-style shuttles
+
+	return shuttle.docking_controller.override_enabled	//override pretty much lets you do whatever you want
+
+
+/obj/machinery/computer/shuttle_control/Del()
+	var/datum/shuttle/shuttle = shuttles[shuttle_tag]
+	
+	if (process_state != IDLE_STATE)
+		shuttle.in_use = 0	//shuttle may not dock properly if this gets deleted while in transit, but its not a big deal
 
 /obj/machinery/computer/shuttle_control/attack_hand(user as mob)
 	if(..(user))
@@ -45,9 +68,9 @@
 
 	ui_interact(user)
 
-
 /obj/machinery/computer/shuttle_control/ui_interact(mob/user, ui_key = "main", var/datum/nanoui/ui = null)
 	var/data[0]
+	var/datum/shuttle/shuttle = shuttles[shuttle_tag]
 
 	var/shuttle_state
 	switch(shuttle.moving_status)
@@ -55,18 +78,28 @@
 		if(SHUTTLE_WARMUP) shuttle_state = "warmup"
 		if(SHUTTLE_INTRANSIT) shuttle_state = "in_transit"
 
-	if (docking_controller)
+	var/shuttle_status
+	if (process_state == IDLE_STATE)
+		if (!shuttle.location)
+			shuttle_status = "Standing-by at station."
+		else
+			shuttle_status = "Standing-by at offsite location."
+		
+	else
+		shuttle_status = "Busy."
+	
+	if (shuttle.docking_controller)
 		data = list(
+			"shuttle_status" = shuttle_status,
 			"shuttle_state" = shuttle_state,
-			"shuttle_loc" = shuttle.location,
 			"has_docking" = 1,
-			"docking_status" = docking_controller.get_docking_status(),
-			"override_enabled" = docking_controller.override_enabled,
+			"docking_status" = shuttle.docking_controller.get_docking_status(),
+			"override_enabled" = shuttle.docking_controller.override_enabled,
 		)
 	else
 		data = list(
+			"shuttle_status" = shuttle_status,
 			"shuttle_state" = shuttle_state,
-			"shuttle_loc" = shuttle.location,
 			"has_docking" = 0,
 			"docking_status" = null,
 			"override_enabled" = null,
@@ -80,17 +113,20 @@
 		ui.open()
 		ui.set_auto_update(1)
 
-//TODO: Canceling launches
+//TODO: Canceling launches, dock overrides using the console, forcing dock/undock
 /obj/machinery/computer/shuttle_control/Topic(href, href_list)
 	if(..())
 		return
+	
+	var/datum/shuttle/shuttle = shuttles[shuttle_tag]
+	
 	usr.set_machine(src)
 	src.add_fingerprint(usr)
 
 	if(href_list["move"])
 		if (shuttle.moving_status == SHUTTLE_IDLE)
 			usr << "\blue [shuttle_tag] Shuttle recieved message and will be sent shortly."
-			shuttle.short_jump()
+			launch_shuttle()
 		else
 			usr << "\blue [shuttle_tag] Shuttle is already moving."
 
@@ -107,13 +143,3 @@
 /obj/machinery/computer/shuttle_control/bullet_act(var/obj/item/projectile/Proj)
 	visible_message("[Proj] ricochets off [src]!")
 
-//makes all shuttles docked to something at round start go into the docked state
-/proc/setup_shuttle_docks()
-	var/list/setup_complete = list()	//so we dont setup the same shuttle repeatedly
-	
-	for (var/obj/machinery/computer/shuttle_control/SC in machines)
-		var/dock_target = SC.shuttle.docking_targets[SC.shuttle.location+1]	//damned byond is 1-indexed - don't forget
-		
-		if (!(SC.shuttle_tag in setup_complete) && SC.docking_controller && dock_target)
-			SC.docking_controller.initiate_docking(dock_target)
-			setup_complete += SC.shuttle_tag
