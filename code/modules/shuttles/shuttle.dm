@@ -27,6 +27,9 @@ var/global/list/shuttles
 
 	moving_status = SHUTTLE_WARMUP
 	spawn(warmup_time*10)
+		if (moving_status == SHUTTLE_IDLE) 
+			return	//someone cancelled the launch
+		
 		move(origin, destination)
 		moving_status = SHUTTLE_IDLE
 
@@ -36,6 +39,9 @@ var/global/list/shuttles
 	moving_status = SHUTTLE_WARMUP
 
 	spawn(warmup_time*10)
+		if (moving_status == SHUTTLE_IDLE) 
+			return	//someone cancelled the launch
+		
 		move(locate(departing),locate(interim))
 
 		sleep(travel_time)
