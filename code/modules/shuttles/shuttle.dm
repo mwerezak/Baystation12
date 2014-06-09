@@ -193,6 +193,7 @@ var/global/list/shuttles
 	shuttle.area_station = locate(/area/shuttle/research/station)
 	shuttle.docking_controller_tag = "research_shuttle"
 	shuttle.dock_target_station = "research_dock_airlock"
+	shuttle.dock_target_offsite = "research_outpost_dock"
 	shuttles["Research"] = shuttle
 
 	//Vox Shuttle.

@@ -26,6 +26,7 @@
 	process_state = WAIT_LAUNCH
 	shuttle.undock()
 
+//TODO move this stuff into the shuttle datum itself, instead of manipulating the shuttle's members
 /obj/machinery/computer/shuttle_control/process()
 	if (!shuttles || !(shuttle_tag in shuttles))
 		return
@@ -36,6 +37,8 @@
 		if (WAIT_LAUNCH)
 			if (skip_checks() || shuttle.docking_controller.can_launch())
 				shuttle.short_jump()
+				if (shuttle.docking_controller && !shuttle.docking_controller.undocked())
+					shuttle.docking_controller.force_undock()
 				process_state = WAIT_ARRIVE
 		if (WAIT_ARRIVE)
 			if (shuttle.moving_status == SHUTTLE_IDLE)
@@ -79,12 +82,11 @@
 		if(SHUTTLE_INTRANSIT) shuttle_state = "in_transit"
 
 	var/shuttle_status
-	if (process_state == IDLE_STATE)
+	if (!shuttle.in_use)
 		if (!shuttle.location)
 			shuttle_status = "Standing-by at station."
 		else
 			shuttle_status = "Standing-by at offsite location."
-		
 	else
 		shuttle_status = "Busy."
 	
@@ -142,4 +144,9 @@
 
 /obj/machinery/computer/shuttle_control/bullet_act(var/obj/item/projectile/Proj)
 	visible_message("[Proj] ricochets off [src]!")
+
+#undef IDLE_STATE
+#undef WAIT_LAUNCH
+#undef WAIT_ARRIVE
+#undef WAIT_FINISH
 
