@@ -410,6 +410,9 @@
 				AA.update_icon()
 
 	if(danger_level > 1)
+		if (get_danger_level(environment_pressure, TLV["pressure"]) >= 2)
+			mode = AALARM_MODE_OFF
+			apply_mode()
 		air_doors_close(0)
 	else
 		air_doors_open(0)
