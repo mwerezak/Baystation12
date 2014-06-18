@@ -9,7 +9,8 @@
 	var/process_state = IDLE_STATE
 	
 	//this mutex ensures that only one console is processing the shuttle's controls at a time
-	var/obj/machinery/computer/shuttle_control/in_use = null
+	//when it is in use this var should hold a reference to the thing that is processing the shuttle
+	var/in_use = null
 	var/lock_timeout = 0	//how long before we allow other consoles to cancel or force launches
 	
 	var/area_station
@@ -88,7 +89,7 @@
 	return dock_target
 
 
-/datum/shuttle/ferry/proc/launch(var/obj/machinery/computer/shuttle_control/user)
+/datum/shuttle/ferry/proc/launch(var/user)
 	if (!can_launch(user)) return
 	
 	in_use = user	//obtain an exclusive lock on the shuttle
@@ -97,7 +98,7 @@
 	process_state = WAIT_LAUNCH
 	undock()
 
-/datum/shuttle/ferry/proc/force_launch(var/obj/machinery/computer/shuttle_control/user)
+/datum/shuttle/ferry/proc/force_launch(var/user)
 	if (!can_force(user)) return
 	
 	in_use = user	//obtain an exclusive lock on the shuttle
@@ -106,7 +107,7 @@
 	
 	process_state = WAIT_ARRIVE
 
-/datum/shuttle/ferry/proc/cancel_launch(var/obj/machinery/computer/shuttle_control/user)
+/datum/shuttle/ferry/proc/cancel_launch(var/user)
 	if (!can_cancel(user)) return
 	
 	moving_status = SHUTTLE_IDLE
@@ -120,7 +121,7 @@
 	
 	return
 
-/datum/shuttle/ferry/proc/can_launch(var/obj/machinery/computer/shuttle_control/user)
+/datum/shuttle/ferry/proc/can_launch(var/user)
 	if (moving_status != SHUTTLE_IDLE)
 		return 0
 	
@@ -129,7 +130,7 @@
 	
 	return 1
 
-/datum/shuttle/ferry/proc/can_force(var/obj/machinery/computer/shuttle_control/user)
+/datum/shuttle/ferry/proc/can_force(var/user)
 	if (in_use && in_use != user && world.time <= lock_timeout)
 		return 0
 	
@@ -138,7 +139,7 @@
 	
 	return 1
 
-/datum/shuttle/ferry/proc/can_cancel(var/obj/machinery/computer/shuttle_control/user)
+/datum/shuttle/ferry/proc/can_cancel(var/user)
 	if (in_use && in_use != user && world.time <= lock_timeout)
 		return 0
 	

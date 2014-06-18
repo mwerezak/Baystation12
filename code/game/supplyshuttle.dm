@@ -472,23 +472,23 @@ var/list/mechtoys = list(
 						switch(shuttle.docking_controller.get_docking_status())
 							if ("docked") dat += "Docked at station<BR>"
 							if ("undocked") dat += "Undocked from station<BR>"
-							if ("docking") dat += "Docking with station [shuttle.can_force()? "<span class='warning'><A href='?src=\ref[src];force_send=1'>OVERRIDE</A></span>" : ""]<BR>"
-							if ("undocking") dat += "Undocking from station [shuttle.can_force()? "<span class='warning'><A href='?src=\ref[src];force_send=1'>OVERRIDE</A></span>" : ""]<BR>"
+							if ("docking") dat += "Docking with station [shuttle.can_force(src)? "<span class='warning'><A href='?src=\ref[src];force_send=1'>OVERRIDE</A></span>" : ""]<BR>"
+							if ("undocking") dat += "Undocking from station [shuttle.can_force(src)? "<span class='warning'><A href='?src=\ref[src];force_send=1'>OVERRIDE</A></span>" : ""]<BR>"
 					else
 						dat += "Station<BR>"
 					
-					if (shuttle.can_launch())
+					if (shuttle.can_launch(src))
 						dat += "<A href='?src=\ref[src];send=1'>Send away</A>"
-					else if (shuttle.can_cancel())
+					else if (shuttle.can_cancel(src))
 						dat += "<A href='?src=\ref[src];cancel_send=1'>Cancel launch</A>"
 					else
 						dat += "*Shuttle is busy*"
 					dat += "<BR>\n<BR>"
 				else
 					dat += "Away<BR>"
-					if (shuttle.can_launch())
+					if (shuttle.can_launch(src))
 						dat += "<A href='?src=\ref[src];send=1'>Request supply shuttle</A>"
-					else if (shuttle.can_cancel())
+					else if (shuttle.can_cancel(src))
 						dat += "<A href='?src=\ref[src];cancel_send=1'>Cancel request</A>"
 					else
 						dat += "*Shuttle is busy*"
@@ -536,18 +536,18 @@ var/list/mechtoys = list(
 			if (shuttle.forbidden_atoms_check())
 				temp = "For safety reasons the automated supply shuttle cannot transport live organisms, classified nuclear weaponry or homing beacons.<BR><BR><A href='?src=\ref[src];mainmenu=1'>OK</A>"
 			else
-				shuttle.launch()
+				shuttle.launch(src)
 				temp = "Initiating launch sequence.<BR><BR><A href='?src=\ref[src];mainmenu=1'>OK</A>"
 		else
-			shuttle.launch()
+			shuttle.launch(src)
 			temp = "The supply shuttle has been called and will arrive in approximately [round(supply_controller.movetime/600,1)] minutes.<BR><BR><A href='?src=\ref[src];mainmenu=1'>OK</A>"
 			post_signal("supply")
 	
 	if (href_list["force_send"])
-		shuttle.force_launch()
+		shuttle.force_launch(src)
 
 	if (href_list["cancel_send"])
-		shuttle.cancel_launch()
+		shuttle.cancel_launch(src)
 	
 	else if (href_list["order"])
 		//if(!shuttle.idle()) return	//this shouldn't be necessary it seems

@@ -29,7 +29,7 @@
 			return	//someone cancelled the launch
 		
 		if (at_station() && forbidden_atoms_check())
-			//cancel the launch because of forbidden atoms. announce over supply channel?
+			//cancel the launch because of forbidden atoms. Probably should give some feedback here, like announce over supply channel or something.
 			return
 		
 		//We pretend it's a long_jump by making the shuttle stay at centcom for the "in-transit" period.

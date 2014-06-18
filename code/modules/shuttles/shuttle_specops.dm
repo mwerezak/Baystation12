@@ -35,19 +35,23 @@
 	if(announcer)
 		announcer.autosay(message, "A.L.I.C.E.", "Response Team")
 
-/datum/shuttle/ferry/multidock/specops/launch(var/obj/machinery/computer/shuttle_control/user)
+/datum/shuttle/ferry/multidock/specops/launch(var/user)
 	if (!can_launch(user))
 		return
 
-	if(world.time <= reset_time)
-		user.visible_message("\blue Central Command will not allow the Special Operations shuttle to launch yet.")
-		if (((world.time - reset_time)/10) > 60)
-			user.visible_message("\blue [-((world.time - reset_time)/10)/60] minutes remain!")
-		else
-			user.visible_message("\blue [-(world.time - reset_time)/10] seconds remain!")
-		return
+	var/obj/machinery/computer/console = null
+	if (istype(user, /obj/machinery/computer))
+		console = user
+	
+		if(world.time <= reset_time)
+			console.visible_message("\blue Central Command will not allow the Special Operations shuttle to launch yet.")
+			if (((world.time - reset_time)/10) > 60)
+				console.visible_message("\blue [-((world.time - reset_time)/10)/60] minutes remain!")
+			else
+				console.visible_message("\blue [-(world.time - reset_time)/10] seconds remain!")
+			return
 
-	user.visible_message("\blue The Special Operations shuttle will depart in [(specops_countdown_time/10)] seconds.")
+		console.visible_message("\blue The Special Operations shuttle will depart in [(specops_countdown_time/10)] seconds.")
 
 	if (location)	//returning
 		radio_announce("THE SPECIAL OPERATIONS SHUTTLE IS PREPARING TO RETURN")
@@ -57,11 +61,16 @@
 	sleep_until_launch()
 	if (cancel_countdown)
 		radio_announce("ALERT: LAUNCH SEQUENCE ABORTED")
-		user.visible_message("\red Launch sequence aborted.")
+		
+		if (console)
+			console.visible_message("\red Launch sequence aborted.")
+		
 		return
 	
 	//launch
 	radio_announce("ALERT: INITIATING LAUNCH SEQUENCE")
+	if (console)
+		console.visible_message("\blue Initiating launch sequence.")
 	..(user)
 
 /datum/shuttle/ferry/multidock/specops/move(var/area/origin,var/area/destination)
@@ -83,7 +92,7 @@
 	cancel_countdown = 1
 
 
-/datum/shuttle/ferry/multidock/specops/can_launch(var/obj/machinery/computer/shuttle_control/user)
+/datum/shuttle/ferry/multidock/specops/can_launch(var/user)
 	if(launch_prep)
 		return 0
 	return ..(user)
@@ -92,7 +101,7 @@
 ///datum/shuttle/ferry/multidock/specops/can_force()
 //	return 0
 
-/datum/shuttle/ferry/multidock/specops/can_cancel(var/obj/machinery/computer/shuttle_control/user)
+/datum/shuttle/ferry/multidock/specops/can_cancel(var/user)
 	if(launch_prep)
 		return 1
 	return ..(user)
