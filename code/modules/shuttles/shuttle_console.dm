@@ -90,6 +90,8 @@
 /datum/shuttle/ferry/proc/force_launch(var/obj/machinery/computer/shuttle_control/user)
 	if (!can_force()) return
 	
+	if (in_use && in_use != user) return	//limits the extent people can mess with you from a remote console
+	
 	in_use = user	//obtain an exclusive lock on the shuttle
 	
 	short_jump()
@@ -98,6 +100,8 @@
 
 /datum/shuttle/ferry/proc/cancel_launch(var/obj/machinery/computer/shuttle_control/user)
 	if (!can_cancel()) return
+	
+	if (in_use && in_use != user) return	//limits the extent people can mess with you from a remote console
 	
 	moving_status = SHUTTLE_IDLE
 	process_state = WAIT_FINISH
