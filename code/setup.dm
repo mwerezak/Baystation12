@@ -766,3 +766,5 @@ var/list/RESTRICTED_CAMERA_NETWORKS = list( //Those networks can only be accesse
 #define SHUTTLE_IDLE		0
 #define SHUTTLE_WARMUP		1
 #define SHUTTLE_INTRANSIT	2
+
+#define SHUTTLE_LOCK_TIMEOUT	600		//how many ticks before the shuttle console lock expires (allowing the launch to be cancelled from any console)

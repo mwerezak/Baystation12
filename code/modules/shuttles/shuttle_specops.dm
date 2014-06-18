@@ -36,7 +36,7 @@
 		announcer.autosay(message, "A.L.I.C.E.", "Response Team")
 
 /datum/shuttle/ferry/multidock/specops/launch(var/obj/machinery/computer/shuttle_control/user)
-	if (!can_launch())
+	if (!can_launch(user))
 		return
 
 	if(world.time <= reset_time)
@@ -83,19 +83,19 @@
 	cancel_countdown = 1
 
 
-/datum/shuttle/ferry/multidock/specops/can_launch()
+/datum/shuttle/ferry/multidock/specops/can_launch(var/obj/machinery/computer/shuttle_control/user)
 	if(launch_prep)
 		return 0
-	return ..()
+	return ..(user)
 
 //should be fine to allow forcing. process_state only becomes WAIT_LAUNCH after the countdown is over.
 ///datum/shuttle/ferry/multidock/specops/can_force()
 //	return 0
 
-/datum/shuttle/ferry/multidock/specops/can_cancel()
+/datum/shuttle/ferry/multidock/specops/can_cancel(var/obj/machinery/computer/shuttle_control/user)
 	if(launch_prep)
 		return 1
-	return ..()
+	return ..(user)
 
 /datum/shuttle/ferry/multidock/specops/proc/sleep_until_launch()
 	var/message_tracker[] = list(0,1,2,3,5,10,30,45)//Create a a list with potential time values.

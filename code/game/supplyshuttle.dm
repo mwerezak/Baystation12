@@ -536,18 +536,18 @@ var/list/mechtoys = list(
 			if (shuttle.forbidden_atoms_check())
 				temp = "For safety reasons the automated supply shuttle cannot transport live organisms, classified nuclear weaponry or homing beacons.<BR><BR><A href='?src=\ref[src];mainmenu=1'>OK</A>"
 			else
-				shuttle.launch(src)
+				shuttle.launch()
 				temp = "Initiating launch sequence.<BR><BR><A href='?src=\ref[src];mainmenu=1'>OK</A>"
 		else
-			shuttle.launch(src)
+			shuttle.launch()
 			temp = "The supply shuttle has been called and will arrive in approximately [round(supply_controller.movetime/600,1)] minutes.<BR><BR><A href='?src=\ref[src];mainmenu=1'>OK</A>"
 			post_signal("supply")
 	
 	if (href_list["force_send"])
-		shuttle.force_launch(src)
+		shuttle.force_launch()
 
 	if (href_list["cancel_send"])
-		shuttle.cancel_launch(src)
+		shuttle.cancel_launch()
 	
 	else if (href_list["order"])
 		//if(!shuttle.idle()) return	//this shouldn't be necessary it seems

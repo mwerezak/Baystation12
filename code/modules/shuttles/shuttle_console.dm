@@ -10,6 +10,7 @@
 	
 	//this mutex ensures that only one console is processing the shuttle's controls at a time
 	var/obj/machinery/computer/shuttle_control/in_use = null
+	var/lock_timeout = 0	//how long before we allow other consoles to cancel or force launches
 	
 	var/area_station
 	var/area_offsite
@@ -88,17 +89,16 @@
 
 
 /datum/shuttle/ferry/proc/launch(var/obj/machinery/computer/shuttle_control/user)
-	if (!can_launch()) return
+	if (!can_launch(user)) return
 	
 	in_use = user	//obtain an exclusive lock on the shuttle
+	lock_timeout = world.time + SHUTTLE_LOCK_TIMEOUT
 	
 	process_state = WAIT_LAUNCH
 	undock()
 
 /datum/shuttle/ferry/proc/force_launch(var/obj/machinery/computer/shuttle_control/user)
-	if (!can_force()) return
-	
-	if (in_use && in_use != user) return	//limits the extent people can mess with you from a remote console
+	if (!can_force(user)) return
 	
 	in_use = user	//obtain an exclusive lock on the shuttle
 	
@@ -107,9 +107,7 @@
 	process_state = WAIT_ARRIVE
 
 /datum/shuttle/ferry/proc/cancel_launch(var/obj/machinery/computer/shuttle_control/user)
-	if (!can_cancel()) return
-	
-	if (in_use && in_use != user) return	//limits the extent people can mess with you from a remote console
+	if (!can_cancel(user)) return
 	
 	moving_status = SHUTTLE_IDLE
 	process_state = WAIT_FINISH
@@ -122,7 +120,7 @@
 	
 	return
 
-/datum/shuttle/ferry/proc/can_launch()
+/datum/shuttle/ferry/proc/can_launch(var/obj/machinery/computer/shuttle_control/user)
 	if (moving_status != SHUTTLE_IDLE)
 		return 0
 	
@@ -131,15 +129,23 @@
 	
 	return 1
 
-/datum/shuttle/ferry/proc/can_force()
-	if (moving_status == SHUTTLE_IDLE && process_state == WAIT_LAUNCH)
-		return 1
-	return 0
+/datum/shuttle/ferry/proc/can_force(var/obj/machinery/computer/shuttle_control/user)
+	if (in_use && in_use != user && world.time <= lock_timeout)
+		return 0
+	
+	if (!(moving_status == SHUTTLE_IDLE && process_state == WAIT_LAUNCH))
+		return 0
+	
+	return 1
 
-/datum/shuttle/ferry/proc/can_cancel()
-	if (moving_status == SHUTTLE_WARMUP || process_state == WAIT_LAUNCH)
-		return 1
-	return 0
+/datum/shuttle/ferry/proc/can_cancel(var/obj/machinery/computer/shuttle_control/user)
+	if (in_use && in_use != user && world.time <= lock_timeout)
+		return 0
+	
+	if (!(moving_status == SHUTTLE_WARMUP || process_state == WAIT_LAUNCH))
+		return 0
+	
+	return 1
 
 
 
@@ -217,9 +223,9 @@
 		"has_docking" = shuttle.docking_controller? 1 : 0,
 		"docking_status" = shuttle.docking_controller? shuttle.docking_controller.get_docking_status() : null,
 		"docking_override" = shuttle.docking_controller? shuttle.docking_controller.override_enabled : null,
-		"can_launch" = shuttle.can_launch(),
-		"can_cancel" = shuttle.can_cancel(),
-		"can_force" = shuttle.can_force(),
+		"can_launch" = shuttle.can_launch(src),
+		"can_cancel" = shuttle.can_cancel(src),
+		"can_force" = shuttle.can_force(src),
 	)
 
 	ui = nanomanager.try_update_ui(user, src, ui_key, ui, data)
