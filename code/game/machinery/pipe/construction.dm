@@ -21,6 +21,7 @@ Buildable meters
 #define PIPE_VOLUME_PUMP        16
 #define PIPE_HEAT_EXCHANGE      17
 #define PIPE_MTVALVE			18
+#define PIPE_MTVALVE_M			28
 #define PIPE_MANIFOLD4W			19
 #define PIPE_CAP				20
 ///// Z-Level stuff
@@ -96,6 +97,8 @@ Buildable meters
 			src.pipe_type = PIPE_HEAT_EXCHANGE
 		else if(istype(make_from, /obj/machinery/atmospherics/tvalve))
 			src.pipe_type = PIPE_MTVALVE
+		else if(istype(make_from, /obj/machinery/atmospherics/tvalve/mirrored))
+			src.pipe_type = PIPE_MTVALVE_M
 		else if(istype(make_from, /obj/machinery/atmospherics/pipe/manifold4w))
 			src.pipe_type = PIPE_MANIFOLD4W
 		else if(istype(make_from, /obj/machinery/atmospherics/pipe/cap))
@@ -253,7 +256,7 @@ Buildable meters
 			return dir|flip|cw|acw
 		if(PIPE_MANIFOLD)
 			return flip|cw|acw
-		if(PIPE_GAS_FILTER, PIPE_GAS_MIXER,PIPE_MTVALVE)
+		if(PIPE_GAS_FILTER, PIPE_GAS_MIXER,PIPE_MTVALVE,PIPE_MTVALVE_M)
 			return dir|flip|cw
 		if(PIPE_GAS_FILTER_M, PIPE_GAS_MIXER_M)
 			return dir|flip|acw
@@ -633,6 +636,26 @@ Buildable meters
 
 		if(PIPE_MTVALVE)		//manual t-valve
 			var/obj/machinery/atmospherics/tvalve/V = new(src.loc)
+			V.dir = dir
+			V.initialize_directions = pipe_dir
+			if (pipename)
+				V.name = pipename
+			var/turf/T = V.loc
+			V.level = T.intact ? 2 : 1
+			V.initialize()
+			V.build_network()
+			if (V.node1)
+				V.node1.initialize()
+				V.node1.build_network()
+			if (V.node2)
+				V.node2.initialize()
+				V.node2.build_network()
+			if (V.node3)
+				V.node3.initialize()
+				V.node3.build_network()
+
+		if(PIPE_MTVALVE_M)		//manual t-valve
+			var/obj/machinery/atmospherics/tvalve/mirrored/V = new(src.loc)
 			V.dir = dir
 			V.initialize_directions = pipe_dir
 			if (pipename)
