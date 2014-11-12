@@ -105,7 +105,7 @@
 
 	proc/handle_chemicals_in_body()
 
-		if(reagents) reagents.metabolize(src)
+		if(reagents) reagents.metabolize(src, METABOLISM_BRAIN)
 
 		confused = max(0, confused - 1)
 		// decrement dizziness counter, clamped to 0

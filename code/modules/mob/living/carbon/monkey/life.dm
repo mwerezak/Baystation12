@@ -429,7 +429,11 @@
 	proc/handle_chemicals_in_body()
 
 		if(reagents && reagents.reagent_list.len)
-			reagents.metabolize(src)
+			var/metabolism_type = 0
+			var/datum/species/S = all_species[greaterform]
+			if (S)
+				metabolism_type = S.reagent_tag
+			reagents.metabolize(src, metabolism_type) //so that neaera can get drunk faster
 
 		if (drowsyness)
 			drowsyness--

@@ -250,12 +250,19 @@ datum
 				return total_transfered
 */
 
-			metabolize(var/mob/M,var/alien)
-
-				for(var/A in reagent_list)
-					var/datum/reagent/R = A
-					if(M && R)
-						R.on_mob_life(M,alien)
+			metabolize(var/mob/M, var/metabolism_type)
+				/*
+				If metabolism_type is null or 0 then we don't process metabolism.
+				It means that if someone forgets to set the type then no metabolism happens.
+				This is probably better in the long run, since metabolize() is called from 
+				comparatively few places and means we don't clutter reagent code with 
+				if(!metabolism_type & !metabolism_type == ... ) everywhere
+				*/
+				if (metabolism_type)
+					for(var/A in reagent_list)
+						var/datum/reagent/R = A
+						if(M && R)
+							R.on_mob_life(M, metabolism_type)
 				update_total()
 
 			conditional_update_move(var/atom/A, var/Running = 0)

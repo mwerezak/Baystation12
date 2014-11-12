@@ -983,10 +983,10 @@
 	proc/handle_chemicals_in_body()
 
 		if(reagents && !(species.flags & IS_SYNTHETIC)) //Synths don't process reagents.
-			var/alien = 0
+			var/metabolism_type = 0
 			if(species && species.reagent_tag)
-				alien = species.reagent_tag
-			reagents.metabolize(src,alien)
+				metabolism_type = species.reagent_tag
+			reagents.metabolize(src, metabolism_type)
 
 			var/total_phoronloss = 0
 			for(var/obj/item/I in src)

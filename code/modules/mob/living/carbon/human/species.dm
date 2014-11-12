@@ -239,7 +239,7 @@
 
 	flesh_color = "#34AF10"
 
-	reagent_tag = IS_UNATHI
+	reagent_tag = METABOLISM_UNATHI
 	base_color = "#066000"
 
 /datum/species/tajaran
@@ -280,7 +280,7 @@
 
 	flesh_color = "#8CD7A3"
 
-	reagent_tag = IS_SKRELL
+	reagent_tag = METABOLISM_SKRELL
 
 /datum/species/vox
 	name = "Vox"
@@ -314,7 +314,7 @@
 	blood_color = "#2299FC"
 	flesh_color = "#808D11"
 
-	reagent_tag = IS_VOX
+	reagent_tag = METABOLISM_VOX
 
 	inherent_verbs = list(
 		/mob/living/carbon/human/proc/leap
@@ -363,7 +363,7 @@
 	tail = "armalis_tail"
 	icon_template = 'icons/mob/human_races/r_armalis.dmi'
 
-	reagent_tag = IS_VOX
+	reagent_tag = METABOLISM_VOX
 
 	inherent_verbs = list(
 		/mob/living/carbon/human/proc/leap,
@@ -409,7 +409,7 @@
 	blood_color = "#004400"
 	flesh_color = "#907E4A"
 
-	reagent_tag = IS_DIONA
+	reagent_tag = METABOLISM_DIONA
 
 /datum/species/diona/can_understand(var/mob/other)
 	var/mob/living/carbon/alien/diona/D = other

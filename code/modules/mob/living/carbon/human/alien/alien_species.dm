@@ -28,7 +28,7 @@
 
 	flags = NO_BREATHE | NO_SCAN | NO_PAIN | NO_SLIP | NO_POISON
 
-	reagent_tag = IS_XENOS
+	reagent_tag = METABOLISM_XENOS
 
 	blood_color = "#05EE05"
 	flesh_color = "#282846"

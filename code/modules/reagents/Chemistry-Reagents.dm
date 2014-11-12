@@ -69,7 +69,7 @@ datum
 				src = null
 				return
 
-			on_mob_life(var/mob/living/M as mob, var/alien)
+			on_mob_life(var/mob/living/M as mob, var/metabolism_type)
 				if(!istype(M, /mob/living))
 					return //Noticed runtime errors from pacid trying to damage ghosts, this should fix. --NEO
 				if( (overdose > 0) && (volume >= overdose))//Overdosing, wooo
@@ -148,7 +148,7 @@ datum
 				else if(istype(self.data["donor"], /mob/living/carbon/monkey))
 					var/obj/effect/decal/cleanable/blood/B = blood_splatter(T,self,1)
 					if(B) B.blood_DNA["Non-Human DNA"] = "A+"
-				else if(istype(self.data["donor"], /mob/living/carbon/alien))
+				else if(istype(self.data["donor"], /mob/living/carbon/metabolism_type))
 					var/obj/effect/decal/cleanable/blood/B = blood_splatter(T,self,1)
 					if(B) B.blood_DNA["UNKNOWN DNA STRUCTURE"] = "X*"
 				return
@@ -357,10 +357,10 @@ datum
 			overdose = REAGENTS_OVERDOSE*2
 			scannable = 1
 
-			on_mob_life(var/mob/living/M as mob, var/alien)
+			on_mob_life(var/mob/living/M as mob, var/metabolism_type)
 				if(!M) M = holder.my_atom
 
-				if(alien && alien == IS_VOX)
+				if(metabolism_type == METABOLISM_VOX)
 					M.adjustToxLoss(REAGENTS_METABOLISM)
 				else
 					if(M.losebreath >= 10)
@@ -446,9 +446,9 @@ datum
 
 			custom_metabolism = 0.01
 
-			on_mob_life(var/mob/living/M as mob, var/alien)
+			on_mob_life(var/mob/living/M as mob, var/metabolism_type)
 				if(M.stat == 2) return
-				if(alien && alien == IS_VOX)
+				if(metabolism_type == METABOLISM_VOX)
 					M.adjustToxLoss(REAGENTS_METABOLISM)
 					holder.remove_reagent(src.id, REAGENTS_METABOLISM) //By default it slowly disappears.
 					return
@@ -471,9 +471,9 @@ datum
 
 			custom_metabolism = 0.01
 
-			on_mob_life(var/mob/living/M as mob, var/alien)
+			on_mob_life(var/mob/living/M as mob, var/metabolism_type)
 				if(M.stat == 2) return
-				if(alien && alien == IS_VOX)
+				if(metabolism_type == METABOLISM_VOX)
 					M.adjustOxyLoss(-2*REM)
 					holder.remove_reagent(src.id, REAGENTS_METABOLISM) //By default it slowly disappears.
 					return
@@ -1021,11 +1021,11 @@ datum
 			overdose = REAGENTS_OVERDOSE/2
 			scannable = 1
 
-			on_mob_life(var/mob/living/M as mob, var/alien)
+			on_mob_life(var/mob/living/M as mob, var/metabolism_type)
 				if(M.stat == 2.0) //THE GUY IS **DEAD**! BEREFT OF ALL LIFE HE RESTS IN PEACE etc etc. He does NOT metabolise shit anymore, god DAMN
 					return
 				if(!M) M = holder.my_atom
-				if(!alien || alien != IS_DIONA)
+				if(metabolism_type != METABOLISM_DIONA)
 					M.heal_organ_damage(0,3*REM)
 				..()
 				return
@@ -1039,14 +1039,14 @@ datum
 			overdose = REAGENTS_OVERDOSE
 			scannable = 1
 
-			on_mob_life(var/mob/living/M as mob, var/alien)
+			on_mob_life(var/mob/living/M as mob, var/metabolism_type)
 				if(M.stat == 2.0)
 					return  //See above, down and around. --Agouri
 				if(!M) M = holder.my_atom
 
-				if(alien && alien == IS_VOX)
+				if(metabolism_type == METABOLISM_VOX)
 					M.adjustToxLoss(2*REM)
-				else if(!alien || alien != IS_DIONA)
+				else if(metabolism_type != METABOLISM_DIONA)
 					M.adjustOxyLoss(-2*REM)
 
 				holder.remove_reagent("lexorin", 2*REM)
@@ -1062,14 +1062,14 @@ datum
 			overdose = REAGENTS_OVERDOSE/2
 			scannable = 1
 
-			on_mob_life(var/mob/living/M as mob, var/alien)
+			on_mob_life(var/mob/living/M as mob, var/metabolism_type)
 				if(M.stat == 2.0)
 					return
 				if(!M) M = holder.my_atom
 
-				if(alien && alien == IS_VOX)
+				if(metabolism_type == METABOLISM_VOX)
 					M.adjustOxyLoss()
-				else if(!alien || alien != IS_DIONA)
+				else if(metabolism_type != METABOLISM_DIONA)
 					M.adjustOxyLoss(-M.getOxyLoss())
 
 				holder.remove_reagent("lexorin", 2*REM)
@@ -1084,11 +1084,11 @@ datum
 			color = "#C8A5DC" // rgb: 200, 165, 220
 			scannable = 1
 
-			on_mob_life(var/mob/living/M as mob, var/alien)
+			on_mob_life(var/mob/living/M as mob, var/metabolism_type)
 				if(M.stat == 2.0)
 					return
 				if(!M) M = holder.my_atom
-				if(!alien || alien != IS_DIONA)
+				if(metabolism_type != METABOLISM_DIONA)
 					if(M.getOxyLoss()) M.adjustOxyLoss(-1*REM)
 					if(M.getBruteLoss() && prob(80)) M.heal_organ_damage(1*REM,0)
 					if(M.getFireLoss() && prob(80)) M.heal_organ_damage(0,1*REM)
@@ -1104,9 +1104,9 @@ datum
 			color = "#C8A5DC" // rgb: 200, 165, 220
 			scannable = 1
 
-			on_mob_life(var/mob/living/M as mob, var/alien)
+			on_mob_life(var/mob/living/M as mob, var/metabolism_type)
 				if(!M) M = holder.my_atom
-				if(!alien || alien != IS_DIONA)
+				if(metabolism_type != METABOLISM_DIONA)
 					M.reagents.remove_all_type(/datum/reagent/toxin, 1*REM, 0, 1)
 					M.drowsyness = max(M.drowsyness-2*REM, 0)
 					M.hallucination = max(0, M.hallucination - 5*REM)
@@ -1296,11 +1296,11 @@ datum
 			overdose = REAGENTS_OVERDOSE
 			scannable = 1
 
-			on_mob_life(var/mob/living/M as mob, var/alien)
+			on_mob_life(var/mob/living/M as mob, var/metabolism_type)
 				if(M.stat == 2.0)
 					return
 				if(!M) M = holder.my_atom
-				if(alien != IS_DIONA)
+				if(metabolism_type != METABOLISM_DIONA)
 					M.heal_organ_damage(2*REM,0)
 				..()
 				return
@@ -1417,7 +1417,7 @@ datum
 		xenomicrobes
 			name = "Xenomicrobes"
 			id = "xenomicrobes"
-			description = "Microbes with an entirely alien cellular structure."
+			description = "Microbes with an entirely metabolism_type cellular structure."
 			reagent_state = LIQUID
 			color = "#535E66" // rgb: 83, 94, 102
 
@@ -1496,11 +1496,11 @@ datum
 			var/toxpwr = 0.7 // Toxins are really weak, but without being treated, last very long.
 			custom_metabolism = 0.1
 
-			on_mob_life(var/mob/living/M as mob,var/alien)
+			on_mob_life(var/mob/living/M as mob,var/metabolism_type)
 				if(!M) M = holder.my_atom
 				if(toxpwr)
 					M.adjustToxLoss(toxpwr*REM)
-					if(alien) ..() //Kind of a catch-all for aliens without kidneys.
+					if(metabolism_type) ..() //Kind of a catch-all for metabolism_types without kidneys.
 				return
 
 		toxin/amatoxin
@@ -1521,7 +1521,7 @@ datum
 
 			reaction_mob(var/mob/living/carbon/M, var/method=TOUCH, var/volume)
 				if(!..())	return
-				if(!istype(M) || !M.dna)	return  //No robots, AIs, aliens, Ians or other mobs should be affected by this.
+				if(!istype(M) || !M.dna)	return  //No robots, AIs, metabolism_types, Ians or other mobs should be affected by this.
 				src = null
 				if((method==TOUCH && prob(33)) || method==INGEST)
 					randmuti(M)
@@ -1721,10 +1721,10 @@ datum
 							O.show_message(text("\blue The fungi are completely dissolved by the solution!"), 1)
 
 			reaction_obj(var/obj/O, var/volume)
-				if(istype(O,/obj/effect/alien/weeds/))
-					var/obj/effect/alien/weeds/alien_weeds = O
-					alien_weeds.health -= rand(15,35) // Kills alien weeds pretty fast
-					alien_weeds.healthcheck()
+				if(istype(O,/obj/effect/metabolism_type/weeds/))
+					var/obj/effect/metabolism_type/weeds/metabolism_type_weeds = O
+					metabolism_type_weeds.health -= rand(15,35) // Kills metabolism_type weeds pretty fast
+					metabolism_type_weeds.healthcheck()
 				else if(istype(O,/obj/effect/glowshroom)) //even a small amount is enough to kill it
 					del(O)
 				else if(istype(O,/obj/effect/plantsegment))
@@ -2973,9 +2973,9 @@ datum
 			var/blur_start = 300	//amount absorbed after which mob starts getting blurred vision
 			var/pass_out = 400	//amount absorbed after which mob starts passing out
 
-			on_mob_life(var/mob/living/M as mob, var/alien)
+			on_mob_life(var/mob/living/M as mob, var/metabolism_type)
 				M:nutrition += nutriment_factor
-				holder.remove_reagent(src.id, (alien ? FOOD_METABOLISM : ALCOHOL_METABOLISM)) // Catch-all for creatures without livers.
+				holder.remove_reagent(src.id, (metabolism_type ? FOOD_METABOLISM : ALCOHOL_METABOLISM)) // Catch-all for creatures without livers.
 
 				if (adj_drowsy)	M.drowsyness = max(0,M.drowsyness + adj_drowsy)
 				if (adj_sleepy) M.sleeping = max(0,M.sleeping + adj_sleepy)
@@ -2989,10 +2989,10 @@ datum
 				for(var/datum/reagent/ethanol/A in holder.reagent_list)
 					if(isnum(A.data)) d += A.data
 
-				if(alien && alien == IS_SKRELL) //Skrell get very drunk very quickly.
+				if(metabolism_type == METABOLISM_SKRELL) //Skrell get very drunk very quickly.
 					d*=5
 
-				M.dizziness += dizzy_adj.
+				M.dizziness += dizzy_adj
 				if(d >= slur_start && d < pass_out)
 					if (!M:slurring) M:slurring = 1
 					M:slurring += slurr_adj

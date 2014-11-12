@@ -817,12 +817,17 @@ var/list/RESTRICTED_CAMERA_NETWORKS = list( //Those networks can only be accesse
  #define FILE_DRM      16  // Some files want to not be copied/moved.  This is them complaining that you tried.
  #define NETWORK_FAILURE  32
 
-//Some on_mob_life() procs check for alien races.
-#define IS_DIONA 1
-#define IS_VOX 2
-#define IS_SKRELL 3
-#define IS_UNATHI 4
-#define IS_XENOS 5
+//Define some metabolism classes for different mob chemistry effects
+#define METABOLISM_NONE         0
+#define METABOLISM_HUMAN        1
+#define METABOLISM_TAJARAN      2
+#define METABOLISM_DIONA        3
+#define METABOLISM_VOX          4
+#define METABOLISM_SKRELL       5
+#define METABOLISM_UNATHI       6
+#define METABOLISM_XENOS        7
+#define METABOLISM_SLIME        8
+#define METABOLISM_BRAIN        9 //temporary, hopefully
 
 #define MAX_GEAR_COST 5 //Used in chargen for loadout limit.
 

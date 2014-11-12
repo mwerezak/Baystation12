@@ -181,7 +181,7 @@
 
 /mob/living/carbon/slime/proc/handle_chemicals_in_body()
 
-	if(reagents) reagents.metabolize(src)
+	if(reagents) reagents.metabolize(src, METABOLISM_SLIME)
 
 	src.updatehealth()
 
