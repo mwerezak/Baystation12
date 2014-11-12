@@ -1500,7 +1500,7 @@ datum
 				if(!M) M = holder.my_atom
 				if(toxpwr)
 					M.adjustToxLoss(toxpwr*REM)
-					if(metabolism_type) ..() //Kind of a catch-all for metabolism_types without kidneys.
+			..() //Kind of a catch-all for metabolism_types without kidneys.
 				return
 
 		toxin/amatoxin
@@ -2985,7 +2985,8 @@ datum
 
 				var/d = data
 
-				// make all the beverages work together
+				//What the hell. Every ethanol derived is going to be adding together every other one separately?
+				 make all the beverages work together
 				for(var/datum/reagent/ethanol/A in holder.reagent_list)
 					if(isnum(A.data)) d += A.data
 
