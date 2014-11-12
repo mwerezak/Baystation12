@@ -494,3 +494,7 @@ BLIND     // can't see anything
 		hastie.emp_act(severity)
 	..()
 
+/obj/item/clothing/under/hear_talk(mob/M, var/msg)
+	if(hastie)
+		hastie.hear_talk(M, msg)
+	..()
