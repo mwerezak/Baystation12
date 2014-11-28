@@ -27,6 +27,7 @@
 		if(!unsim)
 			continue
 
+		/*
 		block = unsim.c_airblock(src)
 
 		if(block & AIR_BLOCKED)
@@ -36,6 +37,10 @@
 		var/r_block = c_airblock(unsim)
 
 		if(r_block & AIR_BLOCKED)
+			continue
+		*/
+
+		if (air_master.air_blocked(unsim, src) & AIR_BLOCKED)
 			continue
 
 		if(istype(unsim, /turf/simulated))
