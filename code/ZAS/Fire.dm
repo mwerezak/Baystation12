@@ -28,14 +28,14 @@ Attach to transfer valve and open. BOOM.
 	var/igniting = 0
 	var/obj/effect/decal/cleanable/liquid_fuel/liquid = locate() in src
 
-	if(air_contents.check_combustability(liquid))
+	if(air_contents.check_combustability(liquid.amount))
 		igniting = 1
 
 		create_fire(1000)
 	return igniting
 
 /zone/proc/process_fire()
-	if(!air.check_combustability())
+	if(!air.check_recombustability())
 		for(var/turf/simulated/T in fire_tiles)
 			if(istype(T.fire))
 				T.fire.RemoveFire()
@@ -184,7 +184,7 @@ turf/simulated/apply_fire_protection()
 	fire_protection = world.time
 
 
-datum/gas_mixture/proc/zburn(obj/effect/decal/cleanable/liquid_fuel/liquid, force_burn, no_check = 0)
+/datum/gas_mixture/proc/zburn(obj/effect/decal/cleanable/liquid_fuel/liquid, force_burn, no_check = 0)
 	. = 0
 	if((temperature > PHORON_MINIMUM_BURN_TEMPERATURE || force_burn) && (no_check ||check_recombustability(liquid)))
 		var/total_fuel = 0
@@ -207,7 +207,7 @@ datum/gas_mixture/proc/zburn(obj/effect/decal/cleanable/liquid_fuel/liquid, forc
 			return 0
 
 		//Calculate the firelevel.
-		var/firelevel = calculate_firelevel(liquid, total_fuel, total_oxidizers, force = 1)
+		var/firelevel = calculate_firelevel(liquid.amount, total_fuel, total_oxidizers, force = 1)
 
 		//get the current inner energy of the gas mix
 		//this must be taken here to prevent the addition or deletion of energy by a changing heat capacity
@@ -242,7 +242,7 @@ datum/gas_mixture/proc/zburn(obj/effect/decal/cleanable/liquid_fuel/liquid, forc
 		update_values()
 		. = total_reactants * used_reactants_ratio
 
-datum/gas_mixture/proc/check_recombustability(obj/effect/decal/cleanable/liquid_fuel/liquid)
+/datum/gas_mixture/proc/check_recombustability(var/fuelamount=0)
 	. = 0
 	for(var/g in gas)
 		if(gas_data.flags[g] & XGM_GAS_OXIDIZER && gas[g] >= 0.1)
@@ -252,7 +252,7 @@ datum/gas_mixture/proc/check_recombustability(obj/effect/decal/cleanable/liquid_
 	if(!.)
 		return 0
 
-	if(liquid)
+	if(fuelamount)
 		return 1
 
 	. = 0
@@ -261,7 +261,8 @@ datum/gas_mixture/proc/check_recombustability(obj/effect/decal/cleanable/liquid_
 			. = 1
 			break
 
-datum/gas_mixture/proc/check_combustability(obj/effect/decal/cleanable/liquid_fuel/liquid)
+//called in hotspot_exp
+/datum/gas_mixture/proc/check_combustability(var/fuelamount=0)
 	. = 0
 	for(var/g in gas)
 		if(gas_data.flags[g] & XGM_GAS_OXIDIZER && QUANTIZE(gas[g] * vsc.fire_consuption_rate) >= 0.1)
@@ -271,7 +272,7 @@ datum/gas_mixture/proc/check_combustability(obj/effect/decal/cleanable/liquid_fu
 	if(!.)
 		return 0
 
-	if(liquid)
+	if(fuelamount)
 		return 1
 
 	. = 0
@@ -280,19 +281,19 @@ datum/gas_mixture/proc/check_combustability(obj/effect/decal/cleanable/liquid_fu
 			. = 1
 			break
 
-datum/gas_mixture/proc/calculate_firelevel(obj/effect/decal/cleanable/liquid_fuel/liquid, total_fuel = null, total_oxidizers = null, force = 0)
+//fuelamount - a number indicating the amount of non-gas fuel present to be combusted or how flamable it is, etc
+/datum/gas_mixture/proc/calculate_firelevel(var/fuelamount = 0, total_fuel = null, total_oxidizers = null, force = 0)
 	//Calculates the firelevel based on one equation instead of having to do this multiple times in different areas.
 	var/firelevel = 0
 
-	if(force || check_recombustability(liquid))
+	if(force || check_recombustability(fuelamount))
 		if(isnull(total_fuel))
 			for(var/g in gas)
 				if(gas_data.flags[g] & XGM_GAS_FUEL)
 					total_fuel += gas[g]
 				if(gas_data.flags[g] & XGM_GAS_OXIDIZER)
 					total_oxidizers += gas[g]
-			if(liquid)
-				total_fuel += liquid.amount
+			total_fuel += fuelamount
 
 		var/total_combustables = (total_fuel + total_oxidizers)
 
