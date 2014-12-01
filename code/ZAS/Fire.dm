@@ -12,15 +12,11 @@ Attach to transfer valve and open. BOOM.
 
 /turf/var/obj/fire/fire = null
 
-//Some legacy definitions so fires can be started.
-atom/proc/temperature_expose(datum/gas_mixture/air, exposed_temperature, exposed_volume)
-	return null
+
+/turf/proc/hotspot_expose(exposed_temperature, exposed_volume, soh = 0)
 
 
-turf/proc/hotspot_expose(exposed_temperature, exposed_volume, soh = 0)
-
-
-turf/simulated/hotspot_expose(exposed_temperature, exposed_volume, soh)
+/turf/simulated/hotspot_expose(exposed_temperature, exposed_volume, soh)
 	if(fire_protection > world.time-300)
 		return 0
 	if(locate(/obj/fire) in src)
@@ -120,9 +116,8 @@ turf/simulated/hotspot_expose(exposed_temperature, exposed_volume, soh)
 		icon_state = "1"
 		SetLuminosity(3)
 
-	//im not sure how to implement a version that works for every creature so for now monkeys are firesafe
-	for(var/mob/living/carbon/human/M in loc)
-		M.FireBurn(firelevel, air_contents.temperature, air_contents.return_pressure())  //Burn the humans!
+	for(var/mob/living/M in loc)
+		M.FireBurn(firelevel, air_contents.temperature, air_contents.return_pressure())  //Burn the mobs!
 
 	loc.fire_act(air_contents, air_contents.temperature, air_contents.volume)
 	for(var/atom/A in loc)
