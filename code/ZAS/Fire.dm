@@ -27,8 +27,9 @@ Attach to transfer valve and open. BOOM.
 
 	var/igniting = 0
 	var/obj/effect/decal/cleanable/liquid_fuel/liquid = locate() in src
+	var/fuelamt = liquid? liquid.amount : 0
 
-	if(air_contents.check_combustability(liquid.amount))
+	if(air_contents.check_combustability(fuelamt))
 		igniting = 1
 
 		create_fire(1000)
@@ -67,16 +68,19 @@ Attach to transfer valve and open. BOOM.
 	return 0
 
 /turf/simulated/create_fire(fl)
+	world << "if(fire=[fire])..."
 	if(fire)
 		fire.firelevel = max(fl, fire.firelevel)
 		return 1
-
+	world << "if(!zone = !<[zone]>)..."
 	if(!zone)
 		return 1
 
 	fire = new(src, fl)
 	zone.fire_tiles |= src
 	air_master.active_fire_zones |= zone
+	world << "zone.fire_tiles -> [zone.fire_tiles.len] tiles."
+	world << "air_master.active_fire_zones -> [air_master.active_fire_zones.len] zones."
 	return 0
 
 /obj/fire
@@ -144,11 +148,14 @@ Attach to transfer valve and open. BOOM.
 					var/fuelamt = liq? liq.amount : 0
 					
 					var/datum/gas_mixture/acs = enemy_tile.return_air()
+					world << "fuelamt: [fuelamt]"
 					if(!acs || !acs.check_combustability(fuelamt))
 						continue
 
 				//Spread the fire.
+				world << "Spread with prob([50 + 50 * (firelevel/vsc.fire_firelevel_multiplier)])"
 				if(prob( 50 + 50 * (firelevel/vsc.fire_firelevel_multiplier) ) && my_tile.CanPass(null, enemy_tile, 0,0) && enemy_tile.CanPass(null, my_tile, 0,0))
+					world << "<[enemy_tile]>.create_fire([firelevel])"
 					enemy_tile.create_fire(firelevel)
 
 			else

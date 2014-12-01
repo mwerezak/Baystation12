@@ -1,0 +1,14 @@
+check_combustability -> turf/sim/hotspot_expose(), zone/process_fire(), when processing fire spread
+check_recombustability -> zburn(if !nocheck), calculate_firelevel(if !force)
+calculate_firelevel
+zburn -> in process_fire(), gas_mixture/react(), canister/process()
+
+
+zburn -> called by gas_mixture/react(), zone/process_fire()
+check who calls react()
+
+
+Get liquid fuel fires to spread again X
+Make fire affect more things
+Get gas to autoignite at flashpoint
+Make gas fire burn longer
