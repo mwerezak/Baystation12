@@ -132,16 +132,20 @@ Attach to transfer valve and open. BOOM.
 				if(!enemy_tile.zone || enemy_tile.fire)
 					continue
 
-				if(!enemy_tile.zone.fire_tiles.len)
-					var/datum/gas_mixture/acs = enemy_tile.return_air()
-					if(!acs || !acs.check_combustability())
-						continue
-
 				//If extinguisher mist passed over the turf it's trying to spread to, don't spread and
 				//reduce firelevel.
 				if(enemy_tile.fire_protection > world.time-30)
 					firelevel -= 1.5
 					continue
+
+				if(!enemy_tile.zone.fire_tiles.len)
+					//TODO#burning Make this more general
+					var/obj/effect/decal/cleanable/liquid_fuel/liq = locate() in enemy_tile
+					var/fuelamt = liq? liq.amount : 0
+					
+					var/datum/gas_mixture/acs = enemy_tile.return_air()
+					if(!acs || !acs.check_combustability(fuelamt))
+						continue
 
 				//Spread the fire.
 				if(prob( 50 + 50 * (firelevel/vsc.fire_firelevel_multiplier) ) && my_tile.CanPass(null, enemy_tile, 0,0) && enemy_tile.CanPass(null, my_tile, 0,0))
