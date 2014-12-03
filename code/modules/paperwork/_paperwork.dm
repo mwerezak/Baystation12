@@ -156,9 +156,34 @@
 		return 1
 	return 0
 
-//prompts the user for pencode input and produces a sequence of strings split on [field] tags
+//Stores a piece of written text content + metadata
+/datum/writing
+
+/datum/writing/proc/render(var/sequence, var/editing)
+	return
+
+/datum/writing/textcontent
+	var/content
+	var/font
+	var/textcolour
+
+/datum/writing/textcontent/New(var/newcontent, var/newfont=DEFAULT_FONT, var/newcolour="black")
+	content = newcontent
+	font = newfont
+	textcolour = newcolour
+
+/datum/writing/textcontent/render()
+	return "<font face='[font]' color=[textcolour]>[content]</font>"
+
+/datum/writing/field
+
+/datum/writing/field/render(var/sequence, var/handler, editing=1)
+	if (editing)
+		return "<font face=\"[DEFAULT_FONT]\"><A href='?src=\ref[handler];write_content=[sequence]'>write</A></font>"
+	return ""
+
+//prompts the user for pencode input and produces a sequence of writing datums plus a terminal field
 /proc/paperwork_input(mob/user, obj/item/implement, var/prompt="Enter what you want to write:")
-	world << "paperwork_input: [user], [implement], [prompt]"
 	if(!implement) return
 
 	var/t = input(prompt, "Write", null, null)  as message
@@ -181,16 +206,16 @@
 
 	//parse pen code then split on field tags
 	t = html_encode(t)
-	t = replacetext(t, "\[field\]", "<>") //all angle brackets should have been removed by html_encode()
 	t = parsepencode(t, user, iscrayon)   // Encode everything from pencode to html //TODO#paperwork
-	
-	var/list/textlist = text2listEx(t, "<>")
+
+	var/list/textlist = text2listEx(t, "\[field\]")
 	
 	//could make textlist a list of datums if we ever need to track more metadata besides font and colour
 	//maybe if we ever implement written languages, but for now YAGNI.
 	. = list()
 	for (var/S in textlist)
-		. += "<font face='[font]' color=[colour]>[S]</font>"
+		. += new/datum/writing/textcontent(S, font, colour)
+		. += new/datum/writing/field()
 
 //Helper proc to join two lists of strings, such as those returned by paperwork_input()
 //Merges the first element of tail with the last element of head

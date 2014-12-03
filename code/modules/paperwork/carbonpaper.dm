@@ -3,27 +3,29 @@
 	icon_state = "paper_stack"
 	item_state = "paper"
 	var copied = 0
-	var iscopy = 0
-
 
 /obj/item/weapon/paperwork/paper/carbon/update_icon()
-	if(iscopy)
-		if(info)
+	..()
+	if (!copied)
+		switch (icon_state)
+			if("paper")
+				icon_state = "paper_stack_words"
+			if("paper_words")
+				icon_state = "paper_stack"
+
+//the paper you get from tearing off the back of carbon paper
+/obj/item/weapon/paperwork/paper/copy
+	name = "paper"
+	icon_state = "cpaper"
+	item_state = "paper"
+
+/obj/item/weapon/paperwork/paper/copy/update_icon()
+	..()
+	switch (icon_state)
+		if("paper")
 			icon_state = "cpaper_words"
-			return
-		icon_state = "cpaper"
-	else if (copied)
-		if(info)
-			icon_state = "paper_words"
-			return
-		icon_state = "paper"
-	else
-		if(info)
-			icon_state = "paper_stack_words"
-			return
-		icon_state = "paper_stack"
-
-
+		if("paper_words")
+			icon_state = "cpaper"
 
 /obj/item/weapon/paperwork/paper/carbon/verb/removecopy()
 	set name = "Remove carbon-copy"

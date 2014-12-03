@@ -73,7 +73,7 @@
 /obj/item/weapon/paperwork/paper/render_content(mob/user=null, var/editing=0)
 	//backwards compatibility with code that sets info
 	if (!isnull(info))
-		text_content = list(info)
+		text_content = list( new/datum/writing/text_content(info) )
 		info = null
 		regenerate_cached_content()
 
@@ -97,7 +97,7 @@
 	onclose(admin.owner, "[name]")
 
 /obj/item/weapon/paperwork/paper/proc/set_content(var/new_text)
-	text_content = list(new_text)
+	text_content = list( new/datum/writing/text_content(info) )
 	regenerate_cached_content()
 	update_icon()
 
@@ -109,12 +109,16 @@
 
 //This should be called whenever the content of the paper is changed
 /obj/item/weapon/paperwork/paper/proc/regenerate_cached_content()
-	cached_content = list2text(text_content)
+	var/list/L = list()
+	for (var/datum/writing/W in text_content)
+		L += W.render(editing=0)
+	cached_content = list2text(L)
 
-	cached_content_edit = ""
-	for (var/i = 1, i <= text_content.len, i++)
-		cached_content_edit += "[text_content[i]][(i < text_content.len)? "<font face=\"[DEFAULT_FONT]\"><A href='?src=\ref[src];write_content=[i]'>write</A></font>" : ""]"
-	cached_content_edit += "<font face=\"[DEFAULT_FONT]\"><A href='?src=\ref[src];write_content=end'>write</A></font>"
+	L.Cut()
+	for (var/i in 1 to text_content.len)
+		var/datum/writing/W = text_content[i]
+		L += W.render(sequence=i, editing=1, handler=src)
+	cached_content_edit = list2text(L)
 	
 	if (stamped && stamped.len)
 		var/stamp_content = "<hr>"
@@ -131,10 +135,6 @@
 		icon_state = "paper"
 
 /obj/item/weapon/paperwork/paper/Topic(href, href_list)
-	world << "write_content: [href_list["write_content"]]"
-	world << "usr: [usr]"
-	world << "usr.get_active_hand(): [usr.get_active_hand()]"
-
 	if (href_list["write_content"])
 		if(!usr || usr.stat || usr.restrained() || !can_read(usr))
 			return
