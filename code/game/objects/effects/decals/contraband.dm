@@ -25,7 +25,7 @@
 
 //############################## THE ACTUAL DECALS ###########################
 
-obj/structure/sign/poster
+/obj/structure/sign/poster
 	name = "poster"
 	desc = "A large piece of space-resistant printed paper. "
 	icon = 'icons/obj/contraband.dmi'
@@ -34,22 +34,23 @@ obj/structure/sign/poster
 	var/poster_type		//So mappers can specify a desired poster
 	var/ruined = 0
 
-obj/structure/sign/poster/New(var/serial)
-	var/designtype
-	if (poster_type)
-		designtype = text2path(poster_type)
-	else
+/obj/structure/sign/poster/New(var/serial)
+	if (!poster_type)
 		if(serial_number == loc)
 			serial_number = rand(1, poster_designs.len)	//This is for the mappers that want individual posters without having to use rolled posters.	
-		designtype = poster_designs[serial_number]
-	
-	var/datum/poster/design=new designtype()
-	name += " - [design.name]"
-	desc += " [design.desc]"
-	icon_state = design.icon_state // poster[serial_number]
+		var/designtype = poster_designs[serial_number]
+		var/datum/poster/design=new designtype()
+		set_poster(design)
 	..()
 
-obj/structure/sign/poster/attackby(obj/item/weapon/W as obj, mob/user as mob)
+/obj/structure/sign/poster/initialize()
+	var/path = text2path(poster_type)
+	if(path)
+		var/datum/poster/design=new path()
+		if (istype(design))
+			set_poster(design)
+
+/obj/structure/sign/poster/attackby(obj/item/weapon/W as obj, mob/user as mob)
 	if(istype(W, /obj/item/weapon/wirecutters))
 		playsound(loc, 'sound/items/Wirecutter.ogg', 100, 1)
 		if(ruined)
@@ -78,6 +79,11 @@ obj/structure/sign/poster/attackby(obj/item/weapon/W as obj, mob/user as mob)
 			add_fingerprint(user)
 		if("No")
 			return
+
+/obj/structure/sign/poster/proc/set_poster(var/datum/poster/design)
+	name += " - [design.name]"
+	desc += " [design.desc]"
+	icon_state = design.icon_state // poster[serial_number]
 
 /obj/structure/sign/poster/proc/roll_and_drop(turf/newloc)
 	var/obj/item/weapon/contraband/poster/P = new(src, serial_number)

@@ -1,6 +1,11 @@
 // BEGIN_INTERNALS
 /*
 MAP_ICON_TYPE: 0
+WINDOW: icons\obj\contraband.dmi;maps\exodus-2.dmm;maps\exodus-1.dmm
+LAST_COMPILE_VERSION: 506.1247
+DIR: code code\game code\game\objects code\game\objects\effects code\game\objects\effects\decals code\game\objects\effects\decals\posters icons icons\obj maps 
+FILE: maps\exodus-2.dmm
+LAST_COMPILE_TIME: 1417756297
 AUTO_FILE_DIR: OFF
 */
 // END_INTERNALS
