@@ -151,8 +151,6 @@
 
 	var/list/area/escape_locations = list(/area/shuttle/escape/centcom, /area/shuttle/escape_pod1/centcom, /area/shuttle/escape_pod2/centcom, /area/shuttle/escape_pod3/centcom, /area/shuttle/escape_pod5/centcom)
 
-	var/pltext = "<font size=2><b>Player list:</b></font>"
-
 	for(var/mob/M in player_list)
 		if(M.client)
 			clients++
@@ -187,7 +185,7 @@
 		text += " (<b>[escaped_total>0 ? escaped_total : "none"] [emergency_shuttle.evac ? "escaped" : "transferred"]</b>) and <b>[ghosts] ghosts</b>.</b><br>"
 	else
 		text += "There were <b>no survivors</b> (<b>[ghosts] ghosts</b>).</b>"
-	text += "<br>" + pltext //print player list after the general info
+	text += "<br><a href='?src=\ref[src];show_player_list=1'>View Player List</a>" //print player list after the general info
 	world << text
 
 	if(clients > 0)
@@ -562,3 +560,14 @@ proc/get_nt_opposed()
 			text += "<br>[purchases]"
 
 	return text
+
+/datum/game_mode/Topic(href, href_list)
+	if(href_list["show_player_list"])
+		if (ticker && ticker.current_state >= GAME_STATE_FINISHED)
+			var/pltext = "<center><b>Round End Player Summary</b></center><br><br>"
+			for(var/mob/M in player_list)
+				if(M.mind && M.mind.name && (M.mind.assigned_role || M.mind.special_role))
+					pltext += print_player_full(M.mind)
+			
+			usr << browse(pltext, "window=show_player_list")
+		

@@ -864,3 +864,10 @@ var/list/hit_appends = list("-OOF", "-ACK", "-UGH", "-HRNK", "-HURGH", "-GLORF")
 //Chemistry
 
 #define CHEM_SYNTH_ENERGY	500	//How much energy does it take to synthesize 1 unit of chemical, in J
+
+//Game mode states
+
+#define GAME_STATE_PREGAME		1
+#define GAME_STATE_SETTING_UP	2
+#define GAME_STATE_PLAYING		3
+#define GAME_STATE_FINISHED		4
