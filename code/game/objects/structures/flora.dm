@@ -1,4 +1,8 @@
 //trees
+
+/obj/structure/flora
+	layer = MOB_LAYER+0.1
+
 /obj/structure/flora/tree
 	name = "tree"
 	anchored = 1
