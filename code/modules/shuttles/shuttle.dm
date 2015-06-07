@@ -5,11 +5,13 @@
 
 /datum/shuttle
 	var/warmup_time = 0
-	var/moving_status = SHUTTLE_IDLE
+	var/datum/shuttle_command/current_command
 
 	var/docking_controller_tag	//tag of the controller used to coordinate docking
 	var/datum/computer/file/embedded_program/docking/docking_controller	//the controller itself. (micro-controller, not game controller)
 
+	var/transit_dir
+	var/current_loc 
 	var/arrive_time = 0	//the time at which the shuttle arrives when long jumping
 
 /datum/shuttle/proc/init_docking_controllers()
@@ -17,40 +19,24 @@
 		docking_controller = locate(docking_controller_tag)
 		if(!istype(docking_controller))
 			world << "<span class='danger'>warning: shuttle with docking tag [docking_controller_tag] could not find it's controller!</span>"
+			warning("shuttle with docking tag [docking_controller_tag] could not find it's controller!")
 
-/datum/shuttle/proc/short_jump(var/area/origin,var/area/destination)
-	if(moving_status != SHUTTLE_IDLE) return
+/datum/shuttle/proc/set_command(datum/shuttle_command/new_command)
+	if(current_command)
+		if(!current_command.is_complete() || !current_command.cancel())
+			return 0
+	current_command = new_command
+	current_command.setup(src)
 
-	//it would be cool to play a sound here
-	moving_status = SHUTTLE_WARMUP
-	spawn(warmup_time*10)
-		if (moving_status == SHUTTLE_IDLE)
-			return	//someone cancelled the launch
+/datum/shuttle/proc/process()
+	if(!current_command)
+		return
+	
+	if(current_command.is_complete())
+		current_command = null
+	else
+		current_command.process()
 
-		moving_status = SHUTTLE_INTRANSIT //shouldn't matter but just to be safe
-		move(origin, destination)
-		moving_status = SHUTTLE_IDLE
-
-/datum/shuttle/proc/long_jump(var/area/departing, var/area/destination, var/area/interim, var/travel_time, var/direction)
-	//world << "shuttle/long_jump: departing=[departing], destination=[destination], interim=[interim], travel_time=[travel_time]"
-	if(moving_status != SHUTTLE_IDLE) return
-
-	//it would be cool to play a sound here
-	moving_status = SHUTTLE_WARMUP
-	spawn(warmup_time*10)
-		if (moving_status == SHUTTLE_IDLE)
-			return	//someone cancelled the launch
-
-		arrive_time = world.time + travel_time*10
-		moving_status = SHUTTLE_INTRANSIT
-		move(departing, interim, direction)
-
-
-		while (world.time < arrive_time)
-			sleep(5)
-
-		move(interim, destination, direction)
-		moving_status = SHUTTLE_IDLE
 
 /datum/shuttle/proc/dock()
 	if (!docking_controller)
@@ -114,6 +100,7 @@
 		pest.gib()
 
 	origin.move_contents_to(destination, direction=direction)
+	current_loc = destination
 
 	for(var/mob/M in destination)
 		if(M.client)
