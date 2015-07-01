@@ -9,6 +9,11 @@
 			continue
 		chemical_reagents_list[D.id] = D
 
+//Ingesting or being covered with bloodstream-metabolizing reagents will take effect slower but are much harder to cause overdose with.
+#define INGEST_TRANS_FACTOR	3
+#define TOUCH_TRANS_FACTOR	9
+
+#undefine
 
 /datum/reagent
 	var/name = "Reagent"
@@ -19,8 +24,13 @@
 	var/list/data = null
 	var/volume = 0
 	var/metabolism = REM // This would be 0.2 normally
-	var/ingest_met = 0
-	var/touch_met = 0
+	var/ingest_met = null //how fast the reagent metabolises when ingested, if at all.
+	var/touch_met = null //how fast the reagent metabolises on the skin, if at all.
+	
+	//Note that transfer rates should be less than metabolism, otherwise ingesting medicines will be just as good as injecting them, while preventing overdose.
+	var/ingest_transfer = 0 //if set, the reagent will transfer to the bloodstream at a rate determined by metabolism
+	var/touch_transfer = 0
+	
 	var/dose = 0
 	var/max_dose = 0
 	var/overdose = 0
@@ -35,6 +45,9 @@
 
 /datum/reagent/proc/remove_self(var/amount) // Shortcut
 	holder.remove_reagent(id, amount)
+
+/datum/reagent/proc/transfer_self(var/datum/reagents/target, var/amount)
+	holder.transfer_to_holder(target, amount)
 
 // This doesn't apply to skin contact - this is for, e.g. extinguishers and sprays. The difference is that reagent is not directly on the mob's skin - it might just be on their clothing.
 /datum/reagent/proc/touch_mob(var/mob/M, var/amount)
@@ -51,25 +64,46 @@
 		return
 	if(!affects_dead && M.stat == DEAD)
 		return
-	if(overdose && (dose > overdose) && (location == CHEM_BLOOD))
-		overdose(M, alien)
-	var/removed = metabolism
-	if(ingest_met && (location == CHEM_INGEST))
-		removed = ingest_met
-	if(touch_met && (location == CHEM_TOUCH))
-		removed = touch_met
-	removed = min(removed, volume)
+	
+	var/overdosing = 0
+	var/trans_amount = 0
+	var/met_amount = metabolism
+	switch(location)
+		if(CHEM_INGEST)
+			if(overdose && dose > overdose * INGEST_TRANS_FACTOR)
+				overdosing = 1
+			if(!isnull(ingest_met))
+				met_amount = ingest_met
+			if(ingest_transfer)
+				trans_amount = metabolism / INGEST_TRANS_FACTOR
+		if(CHEM_TOUCH)
+			if(overdose && dose > overdose * TOUCH_TRANS_FACTOR)
+				overdosing = 1
+			if(!isnull(ingest_met))
+				met_amount = ingest_met
+			if(ingest_transfer)
+				trans_amount = metabolism / TOUCH_TRANS_FACTOR
+		if(CHEM_BLOOD)
+			if(overdose && dose > overdose)
+				overdosing = 1
+	
+	met_amount = min(met_amount, volume)
 	max_dose = max(volume, max_dose)
-	dose = min(dose + removed, max_dose)
-	if(removed >= (metabolism * 0.1) || removed >= 0.1) // If there's too little chemical, don't affect the mob, just remove it
+	dose = min(dose + met_amount, max_dose)
+	
+	if(met_amount >= (metabolism * 0.1) || met_amount >= 0.1) // If there's too little chemical, don't affect the mob, just remove it
 		switch(location)
 			if(CHEM_BLOOD)
-				affect_blood(M, alien, removed)
+				affect_blood(M, alien, met_amount)
 			if(CHEM_INGEST)
-				affect_ingest(M, alien, removed)
+				affect_ingest(M, alien, met_amount)
 			if(CHEM_TOUCH)
-				affect_touch(M, alien, removed)
-	remove_self(removed)
+				affect_touch(M, alien, met_amount)
+	
+	if(trans_amount)
+		transfer_self(M.bloodstr, trans_amount)
+	
+	remove_self(met_amount)
 	return
 
 /datum/reagent/proc/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
