@@ -7,6 +7,8 @@
 	reagent_state = LIQUID
 	color = "#00BFFF"
 	overdose = REAGENTS_OVERDOSE * 2
+	ingest_transfer = 1
+	touch_transfer = 1
 	metabolism = REM * 0.5
 	scannable = 1
 
@@ -22,6 +24,8 @@
 	reagent_state = LIQUID
 	color = "#BF0000"
 	overdose = REAGENTS_OVERDOSE
+	ingest_transfer = 1
+	touch_transfer = 1
 	scannable = 1
 
 /datum/reagent/bicaridine/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
@@ -35,6 +39,8 @@
 	reagent_state = LIQUID
 	color = "#FFA800"
 	overdose = REAGENTS_OVERDOSE
+	ingest_transfer = 1
+	touch_transfer = 1
 	scannable = 1
 
 /datum/reagent/kelotane/affect_blood(var/mob/living/carbon/M, var/alien, var/removed)
