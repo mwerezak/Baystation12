@@ -154,6 +154,7 @@
 	var/welding = 0 	//Whether or not the welding tool is off(0), on(1) or currently welding(2)
 	var/status = 1 		//Whether the welder is secured or unsecured (able to attach rods to it to make a flamethrower)
 	var/max_fuel = 20 	//The max amount of fuel the welder can hold
+	var/obj/item/weapon/weldpack/attached_supply = null //If the welder is attached to a fuel supply.
 
 /obj/item/weapon/weldingtool/New()
 //	var/random_fuel = min(rand(10,20),max_fuel)
@@ -252,10 +253,17 @@
 
 
 /obj/item/weapon/weldingtool/attack_self(mob/user as mob)
+	//look for a fuel supply
+	if(!attached_supply)
+		attached_supply = locate() in loc //allow attaching to welding packs that are inhand or on back.
+		if(attached_supply)
+			user << "<span class='notice'>You hook up \the [src] to \the [attached_supply]</span>"
+			return
+
 	setWelding(!welding, usr)
 	return
 
-//Returns the amount of fuel in the welder
+//Returns the amount of fuel in the welder's internal supply
 /obj/item/weapon/weldingtool/proc/get_fuel()
 	return reagents.get_reagent_amount("fuel")
 
@@ -264,15 +272,22 @@
 /obj/item/weapon/weldingtool/proc/remove_fuel(var/amount = 1, var/mob/M = null)
 	if(!welding)
 		return 0
+	if(attached_supply)
+		if(attached_supply.loc != src.loc)
+			attached_supply = null //if the welder and supply ever become separated, just silently disconnect them.
+		else if(attached_supply.remove_fuel(amount, M))
+			if(M)
+				eyecheck(M)
+			return 1
 	if(get_fuel() >= amount)
 		reagents.remove_reagent("fuel", amount)
 		if(M)
 			eyecheck(M)
 		return 1
-	else
-		if(M)
-			M << "<span class='notice'>You need more welding fuel to complete this task.</span>"
-		return 0
+	
+	if(M)
+		M << "<span class='notice'>You need more welding fuel to complete this task.</span>"
+	return 0
 
 //Returns whether or not the welding tool is currently on.
 /obj/item/weapon/weldingtool/proc/isOn()

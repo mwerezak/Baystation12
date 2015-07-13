@@ -1,6 +1,6 @@
 /obj/item/weapon/weldpack
 	name = "Welding kit"
-	desc = "A heavy-duty, portable welding fluid carrier."
+	desc = "A heavy-duty, portable welding fluid carrier. Has a hose and connector designed to be hooked up to standard welding tools."
 	slot_flags = SLOT_BACK
 	icon = 'icons/obj/storage.dmi'
 	icon_state = "welderpack"
@@ -50,3 +50,13 @@
 	..(user)
 	user << text("\icon[] [] units of fuel left!", src, src.reagents.total_volume)
 	return
+
+//Interface for things like welding tools to draw fuel directly from the welderpack
+/obj/item/weapon/weldingtool/proc/get_fuel()
+	return reagents.get_reagent_amount("fuel")
+
+/obj/item/weapon/weldingtool/proc/remove_fuel(var/amount = 1, var/mob/user = null)
+	if(get_fuel() >= amount)
+		reagents.remove_reagent("fuel", amount)
+		return 1
+	return 0
