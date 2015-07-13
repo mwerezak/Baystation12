@@ -29,7 +29,7 @@
 
 	proc/Spread(exclude=list())
 		//Allows liquid fuels to sometimes flow into other tiles.
-		if(amount < 15) return //lets suppose welder fuel is fairly thick and sticky. For something like water, 5 or less would be more appropriate.
+		if(amount < 30) return //lets suppose welder fuel is fairly thick and sticky. For something like water, 10 or less would be more appropriate.
 		var/turf/simulated/S = loc
 		if(!istype(S)) return
 		for(var/d in cardinal)
