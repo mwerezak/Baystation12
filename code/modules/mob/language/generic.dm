@@ -29,10 +29,11 @@
 	syllables = list("blah","blah","blah","bleh","meh","neh","nah","wah")
 
 //TODO flag certain languages to use the mob-type specific say_quote and then get rid of these.
-/datum/language/common/get_spoken_verb(var/msg_end)
+/datum/language/common/get_spoken_verb(var/message)
+	var/msg_end = copytext(message, length(message))
 	switch(msg_end)
 		if("!")
-			return pick("exclaims","shouts","yells") //TODO: make the basic proc handle lists of verbs.
+			return pick("exclaims","shouts","yells")
 		if("?")
 			return ask_verb
 	return speech_verb

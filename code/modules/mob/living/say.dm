@@ -176,7 +176,7 @@ proc/get_radio_key_from_channel(var/channel)
 		if(speaking.flags & COMMON_VERBS)
 			verb = say_quote(message)
 		else
-			verb = speaking.get_spoken_verb(copytext(message, length(message)))
+			verb = speaking.get_spoken_verb(message)
 	else
 		verb = say_quote(message)
 

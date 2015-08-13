@@ -110,7 +110,8 @@
 /datum/language/proc/check_special_condition(var/mob/other)
 	return 1
 
-/datum/language/proc/get_spoken_verb(var/msg_end)
+/datum/language/proc/get_spoken_verb(var/message)
+	var/msg_end = copytext(message, length(message))
 	switch(msg_end)
 		if("!")
 			return exclaim_verb
