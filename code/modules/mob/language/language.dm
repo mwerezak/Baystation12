@@ -110,6 +110,16 @@
 /datum/language/proc/check_special_condition(var/mob/other)
 	return 1
 
+/datum/language/proc/get_whisper_verb(var/msg_end)
+	if(whisper_verb)
+		return whisper_verb
+
+	var/verb = speech_verb
+	if(copytext(message, length(message)) == "?")
+		verb = ask_verb
+	
+	return "[verb] [pick("quietly", "softly")]"
+
 /datum/language/proc/get_spoken_verb(var/message)
 	var/msg_end = copytext(message, length(message))
 	switch(msg_end)
