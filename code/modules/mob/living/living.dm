@@ -579,9 +579,9 @@ default behaviour is:
 		process_resist()
 
 /mob/living/proc/can_resist()
-	//need to allow !canmove, or otherwise neck grabs can't be resisted
-	//so just check weakened instead.
-	if(stat || weakened)
+	//need to allow !canmove, or otherwise neck grabs can't be resisted.
+	//removed weakened check to allow pinned mobs to resist.
+	if(stat)
 		return 0
 	if(next_move > world.time)
 		return 0
