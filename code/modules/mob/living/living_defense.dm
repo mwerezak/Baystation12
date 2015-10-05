@@ -1,4 +1,23 @@
 
+//Takes a targeted zone and returns a valid attack zone for this mob
+/mob/living/proc/check_zone(zone)
+	return "chest" //generic mob has no zones defined
+
+// Emulates targeting a specific body part, and miss chances
+// May return null if missed
+// miss_chance_mod may be negative.
+/mob/living/proc/get_zone_with_miss_chance(zone, var/miss_chance_mod = 0, var/ranged_attack = 0)
+	zone = check_zone(zone)
+	if(prob(miss_chance_mod))
+		return null
+	return zone
+
+// Returns zone with a certain probability. If the probability fails, or no zone is specified, then a random body part is chosen.
+// Do not use this if someone is intentionally trying to hit a specific body part.
+// Use get_zone_with_miss_chance() for that.
+/mob/living/proc/ran_zone(zone = null, probability = 0)
+	return "chest" //generic mob has no zones defined
+
 /*
 	run_armor_check(a,b)
 	args

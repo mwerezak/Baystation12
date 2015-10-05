@@ -75,6 +75,7 @@ proc/getsensorlevel(A)
 //TODO: Integrate defence zones and targeting body parts with the actual organ system, move these into organ definitions.
 
 //The base miss chance for the different defence zones
+//TODO integrate with organ system
 var/list/global/base_miss_chance = list(
 	"head" = 40,
 	"chest" = 10,
@@ -91,6 +92,7 @@ var/list/global/base_miss_chance = list(
 
 //Used to weight organs when an organ is hit randomly (i.e. not a directed, aimed attack).
 //Also used to weight the protection value that armour provides for covering that body part when calculating protection from full-body effects.
+//TODO integrate with organ system
 var/list/global/organ_rel_size = list(
 	"head" = 25,
 	"chest" = 70,

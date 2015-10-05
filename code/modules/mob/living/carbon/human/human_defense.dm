@@ -8,6 +8,103 @@ emp_act
 
 */
 
+//The base miss chance for the different defence zones
+//TODO integrate with organ system
+var/list/global/base_miss_chance = list(
+	"head" = 40,
+	"chest" = 10,
+	"groin" = 20,
+	"l_leg" = 20,
+	"r_leg" = 20,
+	"l_arm" = 20,
+	"r_arm" = 20,
+	"l_hand" = 50,
+	"r_hand" = 50,
+	"l_foot" = 50,
+	"r_foot" = 50,
+)
+
+//Used to weight organs when an organ is hit randomly (i.e. not a directed, aimed attack).
+//Also used to weight the protection value that armour provides for covering that body part when calculating protection from full-body effects.
+//TODO integrate with organ system
+var/list/global/organ_rel_size = list(
+	"head" = 25,
+	"chest" = 70,
+	"groin" = 30,
+	"l_leg" = 25,
+	"r_leg" = 25,
+	"l_arm" = 25,
+	"r_arm" = 25,
+	"l_hand" = 10,
+	"r_hand" = 10,
+	"l_foot" = 10,
+	"r_foot" = 10,
+)
+
+//Takes a targeted zone and returns a valid attack zone for this mob
+/mob/living/carbon/human/check_zone(zone)
+	if(!zone)	return "chest"
+	switch(zone)
+		if("eyes")
+			zone = "head"
+		if("mouth")
+			zone = "head"
+	return zone
+
+
+// Emulates targeting a specific body part, and miss chances
+// May return null if missed
+// miss_chance_mod may be negative.
+/mob/living/carbon/human/get_zone_with_miss_chance(zone, var/miss_chance_mod = 0, var/ranged_attack = 0)
+	zone = check_zone(zone)
+
+	if(!ranged_attack)
+		// you cannot miss if your target is prone or restrained
+		if(buckled || lying)
+			return zone
+		// if your target is being grabbed aggressively by someone you cannot miss either
+		for(var/obj/item/weapon/grab/G in grabbed_by)
+			if(G.state >= GRAB_AGGRESSIVE)
+				return zone
+
+	var/miss_chance = 10
+	if (zone in base_miss_chance)
+		miss_chance = base_miss_chance[zone]
+	miss_chance = max(miss_chance + miss_chance_mod, 0)
+	if(prob(miss_chance))
+		if(prob(70))
+			return null
+		return pick(base_miss_chance)
+	return zone
+
+// Returns zone with a certain probability. If the probability fails, or no zone is specified, then a random body part is chosen.
+// Do not use this if someone is intentionally trying to hit a specific body part.
+// Use get_zone_with_miss_chance() for that.
+/mob/living/carbon/human/ran_zone(zone = null, probability = 0)
+	if (zone)
+		zone = check_zone(zone)
+		if (prob(probability))
+			return zone
+
+	. = zone
+	while (. == zone)
+		. = pick (
+			organ_rel_size["head"]; "head",
+			organ_rel_size["chest"]; "chest",
+			organ_rel_size["groin"]; "groin",
+			organ_rel_size["l_arm"]; "l_arm",
+			organ_rel_size["r_arm"]; "r_arm",
+			organ_rel_size["l_leg"]; "l_leg",
+			organ_rel_size["r_leg"]; "r_leg",
+			organ_rel_size["l_hand"]; "l_hand",
+			organ_rel_size["r_hand"]; "r_hand",
+			organ_rel_size["l_foot"]; "l_foot",
+			organ_rel_size["r_foot"]; "r_foot",
+		)
+
+	return ran_zone
+
+
 /mob/living/carbon/human/bullet_act(var/obj/item/projectile/P, var/def_zone)
 
 	def_zone = check_zone(def_zone)
