@@ -183,6 +183,22 @@ var/global/datum/emergency_shuttle_controller/emergency_shuttle
 /datum/emergency_shuttle_controller/proc/returned()
 	return (departed && shuttle.moving_status == SHUTTLE_IDLE && shuttle.location)	//we've gone to the station at least once, no longer in transit and are idle back at centcom
 
+//Indicates that the escape shuttle is stuck or immobilized and the game 
+//should stop waiting for it to return in order to end the round
+/datum/emergency_shuttle_controller/proc/check_timeout()
+	var/timeout_duration = (10 MINUTES)
+	if(!evac)
+		timeout_duration += (5 MINUTES)
+	if(!autopilot)
+		timeout_duration += (15 MINUTES)
+	
+	//If the shuttle is waiting to leave and not under manual control, 
+	//and the timer has exceeded the timeout
+	if(waiting_to_leave() && world.time - launch_time > timeout_duration)
+		return 1
+	
+	return 0
+
 //returns 1 if the shuttle is not idle at centcom
 /datum/emergency_shuttle_controller/proc/online()
 	if (!shuttle.location)	//not at centcom
@@ -212,55 +228,8 @@ var/global/datum/emergency_shuttle_controller/emergency_shuttle
 
 			var/timeleft = emergency_shuttle.estimate_launch_time()
 			return "ETD-[(timeleft / 60) % 60]:[add_zero(num2text(timeleft % 60), 2)]"
+		
+		if (!autopilot)
+			return "Autopilot Disengaged"
 
 	return ""
-/*
-	Some slapped-together star effects for maximum spess immershuns. Basically consists of a
-	spawner, an ender, and bgstar. Spawners create bgstars, bgstars shoot off into a direction
-	until they reach a starender.
-*/
-
-/obj/effect/bgstar
-	name = "star"
-	var/speed = 10
-	var/direction = SOUTH
-	layer = 2 // TURF_LAYER
-
-/obj/effect/bgstar/New()
-	..()
-	pixel_x += rand(-2,30)
-	pixel_y += rand(-2,30)
-	var/starnum = pick("1", "1", "1", "2", "3", "4")
-
-	icon_state = "star"+starnum
-
-	speed = rand(2, 5)
-
-/obj/effect/bgstar/proc/startmove()
-
-	while(src)
-		sleep(speed)
-		step(src, direction)
-		for(var/obj/effect/starender/E in loc)
-			qdel(src)
-			return
-
-/obj/effect/starender
-	invisibility = 101
-
-/obj/effect/starspawner
-	invisibility = 101
-	var/spawndir = SOUTH
-	var/spawning = 0
-
-/obj/effect/starspawner/West
-	spawndir = WEST
-
-/obj/effect/starspawner/proc/startspawn()
-	spawning = 1
-	while(spawning)
-		sleep(rand(2, 30))
-		var/obj/effect/bgstar/S = new/obj/effect/bgstar(locate(x,y,z))
-		S.direction = spawndir
-		spawn()
-			S.startmove()

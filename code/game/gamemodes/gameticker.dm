@@ -313,10 +313,10 @@ var/global/datum/controller/gameticker/ticker
 		var/game_finished = 0
 		var/mode_finished = 0
 		if (config.continous_rounds)
-			game_finished = (emergency_shuttle.returned() || mode.station_was_nuked)
+			game_finished = (mode.station_was_nuked || universe_has_ended || emergency_shuttle.returned() || emergency_shuttle.check_timeout())
 			mode_finished = (!post_game && mode.check_finished())
 		else
-			game_finished = (mode.check_finished() || (emergency_shuttle.returned() && emergency_shuttle.evac == 1)) || universe_has_ended
+			game_finished = (universe_has_ended || mode.check_finished() || (emergency_shuttle.evac && (emergency_shuttle.returned() || emergency_shuttle.check_timeout())))
 			mode_finished = game_finished
 
 		if(!mode.explosion_in_progress && game_finished && (mode_finished || post_game))
