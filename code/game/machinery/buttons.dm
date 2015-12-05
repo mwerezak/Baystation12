@@ -18,6 +18,7 @@
 	update_icon()
 	if(_wifi_id)
 		wifi_sender = new(_wifi_id, src)
+		expansions[/datum/expansion/multitool] = new/datum/expansion/multitool/wireless(src, wifi_sender, list(/proc/is_operable))
 
 /obj/machinery/button/Destroy()
 	qdel(wifi_sender)

@@ -44,6 +44,7 @@
 	var/obj/parent
 	var/list/connected_devices
 	var/id
+	var/display_name = "Wireless Connection Socket"
 
 /datum/wifi/New(var/new_id, var/obj/O)
 	connected_devices = new()
@@ -72,6 +73,9 @@
 //-------------------------------
 // Receiver
 //-------------------------------
+/datum/wifi/receiver
+	display_name = "Wireless Input Port"
+
 /datum/wifi/receiver/New()
 	..()
 	if(wirelessProcess)
@@ -85,6 +89,9 @@
 //-------------------------------
 // Sender
 //-------------------------------
+/datum/wifi/receiver
+	display_name = "Wireless Output Port"
+
 /datum/wifi/sender/New()
 	..()
 	send_connection_request()
