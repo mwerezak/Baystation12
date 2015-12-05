@@ -57,7 +57,7 @@
 
 	RefreshParts()
 	update_icon()
-	expansions[/datum/expansion/multitool] = new/datum/expansion/multitool/store(src)
+	expansions[/datum/expansion/multitool] = new/datum/expansion/multitool/store(src, list(/proc/is_operable))
 
 /obj/machinery/clonepod/Destroy()
     if(connected)
