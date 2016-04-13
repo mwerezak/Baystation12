@@ -83,7 +83,10 @@ proc/explosion(turf/epicenter, devastation_range, heavy_impact_range, light_impa
 			if(T)
 				for(var/atom_movable in T.contents)	//bypass type checking since only atom/movable can be contained by turfs anyway
 					var/atom/movable/AM = atom_movable
-					if(AM && AM.simulated)	AM.ex_act(dist)
+					if(AM && AM.simulated)
+						AM.ex_act(dist)
+						if(!deleted(AM) && istype(AM,/obj/item))
+							explosion_throw_item(AM, epicenter, dist)
 
 		var/took = (world.timeofday-start)/10
 		//You need to press the DebugGame verb to see these now....they were getting annoying and we've collected a fair bit of data. Just -test- changes  to explosion code using this please so we can compare
@@ -103,7 +106,16 @@ proc/explosion(turf/epicenter, devastation_range, heavy_impact_range, light_impa
 
 	return 1
 
+/proc/explosion_throw_item(obj/item/I, turf/epicenter, var/severity)
+	var/throw_dir = get_dir(epicenter, I)
 
+	var/throw_range = 2**max(8 - I.w_class - severity, 0)
+	if(severity < 3)
+		throw_range += rand(0, 2*(3 - severity))
+
+	var/throw_speed = round(THROWFORCE_SPEED_DIVISOR * 2**(4 - severity) / I.w_class)
+
+	I.throw_at(get_edge_target_turf(I,throw_dir), throw_range, throw_speed)
 
 proc/secondaryexplosion(turf/epicenter, range)
 	for(var/turf/tile in range(range, epicenter))
