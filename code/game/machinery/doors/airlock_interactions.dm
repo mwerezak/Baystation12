@@ -21,11 +21,11 @@
 
 //*** Airlock Crushing
 
-#define AIRLOCK_CRUSH_DIVISOR 8 // Damage caused by airlock crushing a mob is split into multiple smaller hits. Prevents things like cut off limbs, etc, while still having quite dangerous injury.
-#define CYBORG_AIRLOCKCRUSH_RESISTANCE 4 // Damage caused to silicon mobs (usually cyborgs) from being crushed by airlocks is divided by this number. Unlike organics cyborgs don't have passive regeneration, so even one hit can be devastating for them.
+#define AIRLOCK_CRUSH_INCREMENT 10 // Damage caused by airlock crushing a mob is split into multiple smaller hits. Makes door crushing behave more like a "slow" crushing effect rather than high-speed impacts.
+#define CYBORG_AIRLOCKCRUSH_RESISTANCE 2 // Damage caused to silicon mobs (usually cyborgs) from being crushed by airlocks is divided by this number. Unlike organics cyborgs don't have passive regeneration.
 
 /atom/movable/proc/airlock_crush(var/crush_damage)
-	return 0
+	return
 
 /obj/structure/window/airlock_crush(var/crush_damage)
 	ex_act(2)//Smashin windows
@@ -43,16 +43,23 @@
 	damage(crush_damage)
 	for(var/atom/movable/AM in src)
 		AM.airlock_crush()
-	return 1
+	return
 
 /mob/living/airlock_crush(var/crush_damage)
 	. = ..()
-	for(var/i = 1, i <= AIRLOCK_CRUSH_DIVISOR, i++)
-		adjustBruteLoss(round(crush_damage / AIRLOCK_CRUSH_DIVISOR))
-	SetStunned(5)
-	SetWeakened(5)
+
+	//using getarmor() instead of run_armor_check() to reflect the fact that this is "slow" damage and not high-impact damage
+	var/protection = blocked_mult(getarmor(null, "melee"))
+	crush_damage *= protection
+
+	for(var/i in 1 to round(crush_damage/AIRLOCK_CRUSH_INCREMENT, 1))
+		apply_damage(AIRLOCK_CRUSH_INCREMENT, BRUTE, null, 0)
+
+	SetStunned(round(crush_damage / 8, 1))
+	SetWeakened(round(crush_damage / 8, 1))
+
 	var/turf/T = get_turf(src)
-	T.add_blood(src)
+	
 	var/list/valid_turfs = list()
 	for(var/dir_to_test in cardinal)
 		var/turf/new_turf = get_step(T, dir_to_test)
@@ -72,4 +79,4 @@
 		emote("scream")
 
 /mob/living/silicon/robot/airlock_crush(var/crush_damage)
-	return ..(round(crush_damage / CYBORG_AIRLOCKCRUSH_RESISTANCE))
+	return ..(round(crush_damage / CYBORG_AIRLOCKCRUSH_RESISTANCE)) //TODO implement robot melee armour and remove this.

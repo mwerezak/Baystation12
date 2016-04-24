@@ -34,6 +34,8 @@
 	var/open_sound_powered = 'sound/machines/airlock.ogg'
 	var/open_sound_unpowered = 'sound/machines/airlock_creaking.ogg'
 
+	var/door_crush_damage = DOOR_CRUSH_DAMAGE
+
 	var/_wifi_id
 	var/datum/wifi/receiver/button/door/wifi_receiver
 
@@ -96,6 +98,7 @@
 	icon = 'icons/obj/doors/Doorglass.dmi'
 	hitsound = 'sound/effects/Glasshit.ogg'
 	open_sound_powered = 'sound/machines/windowdoor.ogg'
+	door_crush_damage = DOOR_CRUSH_DAMAGE*0.75
 	maxhealth = 300
 	explosion_resistance = 5
 	opacity = 0
@@ -924,9 +927,9 @@ About the new airlock wires panel:
 
 	for(var/turf/turf in locs)
 		for(var/atom/movable/AM in turf)
-			if(AM.airlock_crush(DOOR_CRUSH_DAMAGE))
-				take_damage(DOOR_CRUSH_DAMAGE)
-				use_power(DOOR_CRUSH_DAMAGE * 100)		// Uses bunch extra power for crushing the target.
+			if(AM.airlock_crush(door_crush_damage))
+				take_damage(door_crush_damage)
+				use_power(door_crush_damage * 100)		// Uses bunch extra power for crushing the target.
 
 	use_power(360)	//360 W seems much more appropriate for an actuator moving an industrial door capable of crushing people
 	if(arePowerSystemsOn())
