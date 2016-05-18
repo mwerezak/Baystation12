@@ -61,6 +61,7 @@
 		/obj/item/weapon/stock_parts,
 		/obj/item/device/mmi,
 		/obj/item/robot_parts,
+		/obj/item/mecha_parts,
 		/obj/item/borg/upgrade,
 		/obj/item/device/flash, //to build borgs,
 		/obj/item/organ/brain, //to insert into MMIs,
