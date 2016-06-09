@@ -541,12 +541,11 @@ BLIND     // can't see anything
 	valid_accessory_slots = list("utility","armband","decor")
 	restricted_accessory_slots = list("utility", "armband")
 
-
 /obj/item/clothing/under/attack_hand(var/mob/user)
-	if(accessories && accessories.len)
+	if(accessories.len)
 		..()
-	if ((ishuman(usr) || issmall(usr)) && src.loc == user)
-		return
+	if(src.loc == user)
+		return //directly clicking on equipped jumpsuits to unequip them is disabled so that people managing accessories aren't as prone to suddenly undressing themselves
 	..()
 
 /obj/item/clothing/under/New()

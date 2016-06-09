@@ -21,7 +21,7 @@
 	var/linked
 
 
-/obj/item/weapon/storage/laundry_basket/attack_hand(mob/user as mob)
+/obj/item/weapon/storage/laundry_basket/attempt_pickup(mob/user, var/use_hand_slot = null)
 	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
 		var/obj/item/organ/external/temp = H.get_organ("r_hand")
@@ -34,6 +34,7 @@
 	if(user.get_inactive_hand())
 		user << "<span class='warning'>You need your other hand to be empty</span>"
 		return
+
 	return ..()
 
 /obj/item/weapon/storage/laundry_basket/attack_self(mob/user as mob)

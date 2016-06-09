@@ -170,31 +170,38 @@
 			size = "huge"
 	return ..(user, distance, "", "It is a [size] item.")
 
-/obj/item/attack_hand(mob/user as mob)
-	if (!user) return
-	if (hasorgans(user))
+/obj/item/proc/attempt_pickup(mob/user, var/use_hand_slot = null)
+	var/use_hand
+	switch(use_hand_slot)
+		if(slot_r_hand)
+			use_hand = 0
+		if(slot_l_hand)
+			use_hand = 1
+		else
+			use_hand = user.hand
+
+	if(hasorgans(user))
 		var/mob/living/carbon/human/H = user
-		var/obj/item/organ/external/temp = H.organs_by_name["r_hand"]
-		if (user.hand)
-			temp = H.organs_by_name["l_hand"]
-		if(temp && !temp.is_usable())
-			user << "<span class='notice'>You try to move your [temp.name], but cannot!</span>"
-			return
-		if(!temp)
+		var/obj/item/organ/external/grasp_organ = use_hand? H.organs_by_name["l_hand"] : H.organs_by_name["r_hand"]
+		if(!grasp_organ)
 			user << "<span class='notice'>You try to use your hand, but realize it is no longer attached!</span>"
 			return
+		if(!grasp_organ.is_usable())
+			user << "<span class='notice'>You try to move your [grasp_organ.name], but cannot!</span>"
+			return
+
 	src.pickup(user)
-	if (istype(src.loc, /obj/item/weapon/storage))
+
+	if(istype(src.loc, /obj/item/weapon/storage))
 		var/obj/item/weapon/storage/S = src.loc
 		S.remove_from_storage(src)
 
 	src.throwing = 0
-	if (src.loc == user)
-		if(!user.unEquip(src))
+
+	if(ismob(src.loc))
+		if(src.loc != user || !user.unEquip(src))
 			return
-	else
-		if(isliving(src.loc))
-			return
+
 	if(user.put_in_active_hand(src))
 		if(randpixel)
 			pixel_x = rand(-randpixel, randpixel)
@@ -203,7 +210,11 @@
 		else if(randpixel == 0)
 			pixel_x = 0
 			pixel_y = 0
-	return
+
+/obj/item/attack_hand(mob/user as mob)
+	if(user)
+		attempt_pickup(user)
+
 
 /obj/item/attack_ai(mob/user as mob)
 	if (istype(src.loc, /obj/item/weapon/robot_module))
@@ -246,6 +257,18 @@
 				S.handle_item_insertion(src)
 
 	return
+
+//Default drag-and-drop behaviour for items.
+//Dragging an item from an inventory slot to your hands should attempt to unequip it and place the item in your hand.
+/obj/item/MouseDrop(var/obj/over_object)
+	if(!usr || src.loc != usr || usr.incapacitated())
+		return
+	var/obj/screen/inventory/inv_slot_obj = over_object
+	if(!istype(inv_slot_obj))
+		return
+	if(inv_slot_obj.slot_id == slot_l_hand || inv_slot_obj.slot_id == slot_r_hand)
+		attempt_pickup(usr, inv_slot_obj.slot_id)
+		add_fingerprint(usr)
 
 /obj/item/proc/talk_into(mob/M as mob, text)
 	return

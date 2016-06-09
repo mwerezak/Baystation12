@@ -30,6 +30,7 @@
 	var/slot_id	//The indentifier for the slot. It has nothing to do with ID cards.
 
 
+
 /obj/screen/close
 	name = "close"
 
@@ -54,7 +55,7 @@
 	if(!usr.canClick())
 		return
 
-	if(usr.stat || usr.restrained() || usr.stunned || usr.lying)
+	if(usr.incapacitated())
 		return 1
 
 	if(!(owner in usr))
