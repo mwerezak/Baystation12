@@ -230,7 +230,7 @@
 		if(gene.is_active(src))
 			gene.OnMobLife(src)
 
-	radiation = Clamp(radiation,0,100)
+	radiation = max(radiation, 0)
 
 	if (radiation)
 		var/obj/item/organ/diona/nutrients/rad_organ = locate() in internal_organs
