@@ -263,8 +263,8 @@
 	new /obj/item/clothing/suit/storage/toggle/labcoat(src)
 	new /obj/item/clothing/shoes/black(src)
 	new /obj/item/clothing/shoes/black(src)
-	new /obj/item/clothing/gloves/black(src)
-	new /obj/item/clothing/gloves/black(src)
+	new /obj/item/clothing/gloves/color/thick(src)
+	new /obj/item/clothing/gloves/color/thick(src)
 	return
 
 
@@ -404,7 +404,7 @@
 	new /obj/item/clothing/glasses/sunglasses/sechud/tactical(src)
 	new /obj/item/weapon/storage/belt/security/tactical(src)
 	new /obj/item/clothing/shoes/jackboots(src)
-	new /obj/item/clothing/gloves/black(src)
+	new /obj/item/clothing/gloves/color/thick(src)
 	return
 
 /obj/structure/closet/wardrobe/suit
