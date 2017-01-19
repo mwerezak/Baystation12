@@ -233,7 +233,7 @@
 
 
 /obj/item/organ/external/New(var/mob/living/carbon/holder)
-	..(holder, 0)
+	..(holder)
 	if(isnull(pain_disability_threshold))
 		pain_disability_threshold = (max_damage * 0.75)
 	if(owner)
@@ -243,8 +243,7 @@
 		get_icon()
 
 /obj/item/organ/external/replaced(var/mob/living/carbon/human/target)
-	owner = target
-	forceMove(owner)
+	..()
 
 	if(istype(owner))
 		owner.organs_by_name[organ_tag] = src

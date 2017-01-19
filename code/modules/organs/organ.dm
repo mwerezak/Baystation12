@@ -41,7 +41,7 @@ var/list/organ_cache = list()
 /obj/item/organ/proc/update_health()
 	return
 
-/obj/item/organ/New(var/mob/living/carbon/holder, var/internal)
+/obj/item/organ/New(var/mob/living/carbon/holder)
 	..(holder)
 	create_reagents(10)
 	reagents.add_reagent("protein", 5)
@@ -57,20 +57,6 @@ var/list/organ_cache = list()
 			species = all_species[dna.species]
 		else
 			log_debug("[src] at [loc] spawned without a proper DNA.")
-		var/mob/living/carbon/human/H = holder
-		if(istype(H))
-			if(internal)
-				var/obj/item/organ/external/E = H.get_organ(parent_organ)
-				if(E)
-					if(E.internal_organs == null)
-						E.internal_organs = list()
-					E.internal_organs |= src
-			if(dna)
-				if(!blood_DNA)
-					blood_DNA = list()
-				blood_DNA[dna.unique_enzymes] = dna.b_type
-		if(internal)
-			holder.internal_organs |= src
 	update_icon()
 
 /obj/item/organ/proc/set_dna(var/datum/dna/new_dna)
@@ -329,23 +315,8 @@ var/list/organ_cache = list()
 	owner = null
 
 /obj/item/organ/proc/replaced(var/mob/living/carbon/human/target,var/obj/item/organ/external/affected)
-
-	if(!istype(target))
-		return 0
-
-	if(status & ORGAN_CUT_AWAY)
-		return 0 //organs don't work very well in the body when they aren't properly attached
-
-	// robotic organs emulate behavior of the equivalent flesh organ of the species
-	if(robotic >= ORGAN_ROBOT || !species)
-		species = target.species
-
 	owner = target
 	forceMove(owner) //just in case
-	processing_objects -= src
-	target.internal_organs |= src
-	affected.internal_organs |= src
-	target.internal_organs_by_name[organ_tag] = src
 	return 1
 
 /obj/item/organ/attack(var/mob/target, var/mob/user)
