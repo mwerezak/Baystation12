@@ -6,7 +6,7 @@
 	anchored = 1
 	unacidable = 1
 	simulated = 0
-	invisibility = 101
+	//invisibility = 101
 
 //Can shuttle go here without doing weird stuff?
 /obj/effect/shuttle_landmark/proc/free()
